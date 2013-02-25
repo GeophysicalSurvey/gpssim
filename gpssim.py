@@ -494,8 +494,6 @@ class ModelGpsReceiver(object):
 		self.output = output
 
 		# Create all dummy satellites with random conditions
-		assert num_sats <= ModelGpsReceiver.__GPS_TOTAL_SV_LIMIT
-
 		self.satellites = []
 		for prn in range(1, ModelGpsReceiver.__GPS_TOTAL_SV_LIMIT + 1):
 			self.satellites.append(ModelSatellite(prn, azimuth=random.random() * 360, snr=30 + random.random() * 10))
@@ -521,6 +519,7 @@ class ModelGpsReceiver(object):
 
 	@num_sats.setter
 	def num_sats(self, value):
+		assert value <= ModelGpsReceiver.__GPS_TOTAL_SV_LIMIT
 		# Randomly make the requested number visible, make the rest invisible (negative elevation)
 		random.shuffle(self.satellites)
 		for i in range(value):
@@ -573,9 +572,11 @@ class GpsSim(object):
 		self.heading_variation = heading_variation
 		self.comport = serial.Serial()
 		self.comport.baudrate = 4800
+		self.lock = threading.Lock()
 
 	def __step(self, duration=1.0):
 		''' Iterate a simulation step for the specified duration in seconds, moving the GPS instance and updating state.
+		Should be called while under lock conditions.
 		'''
 		if self.gps.date_time != None:
 			self.gps.date_time += datetime.timedelta(seconds=duration)
@@ -595,28 +596,33 @@ class GpsSim(object):
 		''' Worker thread action for the GPS simulator - outputs data to the specified serial port at 1PPS.
 		'''
 		self.__run.set()
-		if self.comport.port is not None:
-			self.comport.open()
+		with self.lock:
+			if self.comport.port is not None:
+				self.comport.open()
 		while self.__run.is_set():
 			start = time.time()
-			output = self.gps.get_output()
-			for sentence in output:
-				print sentence
-				if self.comport.port is not None:
-					self.comport.write(sentence + '\r\n')
-			
+			with self.lock:
+				output = self.gps.get_output()
+				for sentence in output:
+					print sentence
+					if self.comport.port is not None:
+						self.comport.write(sentence + '\r\n')
 			while time.time() - start < 1.0 and self.__run.is_set():
 				time.sleep(0.1)
-			self.__step(time.time() - start)
-		if self.comport.port is not None:
-			self.comport.close()
+			with self.lock:
+				self.__step(time.time() - start)
+
+		with self.lock:
+			if self.comport.port is not None:
+				self.comport.close()
 		
 	def serve(self, comport):
 		''' Start serving GPS simulator on the specified COM port (and stdout) until an exception (e.g KeyboardInterrupt).
           Port may be None to send to stdout only.
 		'''
 		self.kill()
-		self.comport.port = comport
+		with self.lock:
+			self.comport.port = comport
 		self.__worker = threading.Thread(target=self.__action)
 		self.__worker.daemon = True
 		self.__worker.start()
@@ -639,15 +645,54 @@ class GpsSim(object):
 	def generate(self, duration):
 		''' Instantaneous generator for the GPS simulator - outputs data to stdout synchronously.
 		'''
-		start = self.gps.date_time
-		while (self.gps.date_time - start).total_seconds() < duration:
-			output = self.gps.get_output()
-			for sentence in output:
-				print sentence
-			self.__step(1.0)
+		with self.lock:
+			start = self.gps.date_time
+		now = start
+		while (now - start).total_seconds() < duration:
+			with self.lock:
+				output = self.gps.get_output()
+				for sentence in output:
+					print sentence
+				self.__step(1.0)
+				now = self.gps.date_time
 
 if __name__ == '__main__':
-	sim = GpsSim(gps=ModelGpsReceiver(lat=1, lon=3, altitude=-13, kph=60, heading=90), heading_variation=60)
+	sim = GpsSim()
+
+	# How to output specific sentence types from the model
+	model = ModelGpsReceiver()
+	model.output=('GPGGA', 'GPRMC')
+	sentences = model.get_output()
+
+	# Modify settings under lock protection
+	with sim.lock:
+		sim.gps.output=('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV', 'GPRMC', 'GPVTG', 'GPZDA') # can re-order or drop some
+		sim.gps.num_sats = 14
+		sim.gps.lat = 1
+		sim.gps.lon = 3
+		sim.gps.altitude = -13
+		sim.gps.geoid_sep = -45.3
+		sim.gps.mag_var = -1.1
+		sim.gps.kph = 60.0
+		sim.gps.heading = 90.0
+		sim.gps.mag_heading = 90.1
+		sim.gps.date_time = datetime.datetime.now(TimeZone(time.timezone)) # PC current time, local time zone
+		sim.gps.hdop = 3.1
+		sim.gps.vdop = 5.0
+		sim.gps.pdop = (sim.gps.hdop ** 2 + sim.gps.vdop ** 2) ** 0.5
+
+		# Precision decimal points for various measurements
+		sim.gps.horizontal_dp=4
+		sim.gps.vertical_dp=1
+		sim.gps.speed_dp=1
+		sim.gps.time_dp=2
+		sim.gps.angle_dp=1
+
+		sim.heading_variation = None # Keep straight course for simulator - don't randomly change the heading
+
+	# How to synchronously generate simulated data to stdout
+	sim.generate(1)
+
 	port = None
 	if len(sys.argv) > 1:
 		if sys.argv[1] == '--help' or sys.argv[1] == '-h':
@@ -655,4 +700,3 @@ if __name__ == '__main__':
 			sys.exit(0)
 		port = sys.argv[1]
 	sim.serve(port)
-
