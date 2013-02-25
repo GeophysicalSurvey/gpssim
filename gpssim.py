@@ -583,21 +583,25 @@ class GpsSim(object):
 		''' Worker thread action for the GPS simulator - outputs data to the specified serial port at 1PPS.
 		'''
 		self.__run.set()
-		self.comport.open()
+		if self.comport.port is not None:
+			self.comport.open()
 		while self.__run.is_set():
 			start = time.time()
 			output = self.gps.get_output()
 			for sentence in output:
 				print sentence
-				self.comport.write(sentence + '\r\n')
+				if self.comport.port is not None:
+					self.comport.write(sentence + '\r\n')
 			
 			while time.time() - start < 1.0 and self.__run.is_set():
 				time.sleep(0.1)
 			self.__step(time.time() - start)
-		self.comport.close()
+		if self.comport.port is not None:
+			self.comport.close()
 		
 	def serve(self, comport):
-		''' Start serving GPS simulator on the specified COM port/stdout until an exception (e.g KeyboardInterrupt).
+		''' Start serving GPS simulator on the specified COM port (and stdout) until an exception (e.g KeyboardInterrupt).
+          Port may be None to send to stdout only.
 		'''
 		self.kill()
 		self.comport.port = comport
