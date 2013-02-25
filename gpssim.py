@@ -635,5 +635,12 @@ class GpsSim(object):
 			self.__step(1.0)
 
 if __name__ == '__main__':
-	sim = gpssim.GpsSim(gps=gpssim.ModelGpsReceiver(lat=1, lon=3, altitude=-13, kph=60, heading=90), heading_variation=60)
-	sim.serve(sys.argv[1])
+	sim = GpsSim(gps=ModelGpsReceiver(lat=1, lon=3, altitude=-13, kph=60, heading=90), heading_variation=60)
+	port = None
+	if len(sys.argv) > 1:
+		if sys.argv[1] == '--help' or sys.argv[1] == '-h':
+			print "Usage: %s [serial port]"%sys.argv[0]
+			sys.exit(0)
+		port = sys.argv[1]
+	sim.serve(port)
+
