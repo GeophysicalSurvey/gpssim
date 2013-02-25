@@ -118,10 +118,6 @@ class ModelGpsReceiver(object):
 		'''
 		self.__visible_prns = []
 		for satellite in self.satellites:
-			if satellite.elevation > 0:
-				# If above horizon, treat as visible
-				self.__visible_prns.append(satellite.prn)
-
 			# Fix elevation wrap around (overhead and opposite side of earth)
 			if satellite.elevation > 90:
 				satellite.elevation = 180 - satellite.elevation
@@ -142,15 +138,19 @@ class ModelGpsReceiver(object):
 			elif satellite.snr > 99:
 				satellite.snr = 99
 
+			if satellite.elevation > 0:
+				# If above horizon, treat as visible
+				self.__visible_prns.append(satellite.prn)
+
 		# For real fixes correct for number of satellites
 		if self.fix != GPS_DEAD_RECKONING_FIX and self.fix != GPS_MANUAL_INPUT and self.fix != GPS_SIMULATION:
 			# Cannot have GPS time without satellites
-			if len(self.__visible_prns) == 0:
+			if self.num_sats == 0:
 				self.date_time = None
 			
 			# Cannot have a fix if too few satellites
-			if len(self.__visible_prns) < 4:
-				if self.manual_2d and len(self.__visible_prns) == 3:
+			if self.num_sats < 4:
+				if self.manual_2d and self.num_sats == 3:
 					# 3 satellites sufficient for 2-D fix if forced
 					self.altitude = None
 				else:
@@ -278,7 +278,7 @@ class ModelGpsReceiver(object):
 		
 		data += self.__nmea_lat_lon() + ','
 		
-		data += self.fix + ',' + ('%2d' % len(self.__visible_prns)) + ','
+		data += self.fix + ',' + ('%2d' % self.num_sats) + ','
 		
 		if self.hdop != None:
 			data += ('%.1f' % self.hdop)
@@ -342,13 +342,13 @@ class ModelGpsReceiver(object):
 		
 		data += self.__mode + ','
 
-		if len(self.__visible_prns) >= ModelGpsReceiver.__GPGSA_SV_LIMIT:
+		if self.num_sats >= ModelGpsReceiver.__GPGSA_SV_LIMIT:
 			for i in range(ModelGpsReceiver.__GPGSA_SV_LIMIT):
 				data += ('%d' % self.__visible_prns[i]) + ','
 		else:
 			for prn in self.__visible_prns:
 				data += ('%d' % prn) + ','
-			data += ',' * (ModelGpsReceiver.__GPGSA_SV_LIMIT - len(self.__visible_prns))
+			data += ',' * (ModelGpsReceiver.__GPGSA_SV_LIMIT - self.num_sats)
 
 		if self.pdop != None:
 			data += ('%.1f' % self.pdop)
@@ -366,11 +366,11 @@ class ModelGpsReceiver(object):
 	def __gpgsv(self):
 		''' Generate a sequence of NMEA GPGSV sentences.
 		'''
-		if len(self.__visible_prns) == 0:
+		if self.num_sats == 0:
 			return []
 
 		# Work out how many GPGSV sentences are required to show all satellites
-		messages = [''] * ((len(self.__visible_prns) + ModelGpsReceiver.__GPGSV_SV_LIMIT - 1) / ModelGpsReceiver.__GPGSV_SV_LIMIT)
+		messages = [''] * ((self.num_sats + ModelGpsReceiver.__GPGSV_SV_LIMIT - 1) / ModelGpsReceiver.__GPGSV_SV_LIMIT)
 		prn_i = 0
 
 		# Iterate through each block of satellites
@@ -378,11 +378,11 @@ class ModelGpsReceiver(object):
 			data = ''
 			data += ('%d' % len(messages)) + ','
 			data += ('%d' % (i + 1)) + ','
-			data += ('%d' % len(self.__visible_prns)) + ','
+			data += ('%d' % self.num_sats) + ','
 			
 			# Iterate through each satellite in the block
 			for j in range(ModelGpsReceiver.__GPGSV_SV_LIMIT):
-				if prn_i < len(self.__visible_prns):
+				if prn_i < self.num_sats:
 					satellite = self.satellites[self.__visible_prns[prn_i] - 1]
 					data += ('%d' % satellite.prn) + ','
 					data += ('%d' % int(satellite.elevation)) + ','
@@ -498,13 +498,10 @@ class ModelGpsReceiver(object):
 
 		self.satellites = []
 		for prn in range(1, ModelGpsReceiver.__GPS_TOTAL_SV_LIMIT + 1):
-			self.satellites.append(ModelSatellite(prn, elevation=random.random() * 90, azimuth=random.random() * 360, snr=30 + random.random() * 10))
+			self.satellites.append(ModelSatellite(prn, azimuth=random.random() * 360, snr=30 + random.random() * 10))
 		
-		# Randomly make the requested number visible, make the rest invisible (negative elevation)
-		random.shuffle(self.satellites)
-		for i in range(num_sats, len(self.satellites)):
-			self.satellites[i].elevation = -90
-		self.satellites.sort(key=operator.attrgetter('prn', ))
+		# Smart setter will configure satellites as appropriate
+		self.num_sats = num_sats
 
 		self.__fix()
 
@@ -517,7 +514,22 @@ class ModelGpsReceiver(object):
 		self.__gen_nmea['GPVTG'] = self.__gpvtg
 		self.__gen_nmea['GPGLL'] = self.__gpgll
 		self.__gen_nmea['GPZDA'] = self.__gpzda
-	
+
+	@property
+	def num_sats(self):
+		return len(self.__visible_prns)
+
+	@num_sats.setter
+	def num_sats(self, value):
+		# Randomly make the requested number visible, make the rest invisible (negative elevation)
+		random.shuffle(self.satellites)
+		for i in range(value):
+			self.satellites[i].elevation=random.random() * 90
+		for i in range(value, len(self.satellites)):
+			self.satellites[i].elevation = -90
+		self.satellites.sort(key=operator.attrgetter('prn', ))
+		self.__fix()
+
 	def move(self, duration=1.0):
 		''' 'Move' the GPS instance for the specified duration in seconds based on current heading and velocity.
 		'''
