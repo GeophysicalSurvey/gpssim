@@ -35,6 +35,7 @@ import time
 import math
 import random
 import operator
+import collections
 
 try:
 	import serial
@@ -48,21 +49,24 @@ except:
 	print 'Missing package dependency for GeographicLib'
 	raise
 
-GPS_INVALID_FIX = '0'
-GPS_SPS_FIX = '1'
-GPS_DGPS_FIX = '2'
-GPS_PPS_FIX = '3'
-GPS_RTK_FIX = '4'
-GPS_FLOAT_RTK_FIX = '5'
-GPS_DEAD_RECKONING_FIX = '6'
-GPS_MANUAL_INPUT = '7'
-GPS_SIMULATION = '8'
+fix_types = collections.OrderedDict()
+fix_types['GPS_INVALID_FIX'] = '0'
+fix_types['GPS_SPS_FIX'] = '1'
+fix_types['GPS_DGPS_FIX'] = '2'
+fix_types['GPS_PPS_FIX'] = '3'
+fix_types['GPS_RTK_FIX'] = '4'
+fix_types['GPS_FLOAT_RTK_FIX'] = '5'
+fix_types['GPS_DEAD_RECKONING_FIX'] = '6'
+fix_types['GPS_MANUAL_INPUT_FIX'] = '7'
+fix_types['GPS_SIMULATED_FIX'] = '8'
 
-GPS_AUTONOMOUS_SOLUTION = 'A'
-GPS_DIFFERENTIAL_SOLUTION = 'D'
-GPS_ESTIMATED_SOLUTION = 'E'
-GPS_INVALID_SOLUTION = 'N'
-GPS_SIMULATOR_SOLUTION = 'S'
+solution_modes = collections.OrderedDict()
+solution_modes[''] = ''
+solution_modes['GPS_AUTONOMOUS_SOLUTION'] = 'A'
+solution_modes['GPS_DIFFERENTIAL_SOLUTION'] = 'D'
+solution_modes['GPS_ESTIMATED_SOLUTION'] = 'E'
+solution_modes['GPS_INVALID_SOLUTION'] = 'N'
+solution_modes['GPS_SIMULATOR_SOLUTION'] = 'S'
 
 class TimeZone(datetime.tzinfo):
 	''' Generic time zone class that implements the Python tzinfo interface
@@ -112,7 +116,7 @@ class ModelGpsReceiver(object):
 
 	__KNOTS_PER_KPH = 1.852
 
-	def __fix(self):
+	def __recalculate(self):
 		''' Recalculate and fix internal state data for the GPS instance.
 		Should be executed after external modification of parameters and prior to doing any calculations.
 		'''
@@ -143,7 +147,7 @@ class ModelGpsReceiver(object):
 				self.__visible_prns.append(satellite.prn)
 
 		# For real fixes correct for number of satellites
-		if self.fix != GPS_DEAD_RECKONING_FIX and self.fix != GPS_MANUAL_INPUT and self.fix != GPS_SIMULATION:
+		if self.fix != 'GPS_DEAD_RECKONING_FIX' and self.fix != 'GPS_MANUAL_INPUT_FIX' and self.fix != 'GPS_SIMULATED_FIX':
 			# Cannot have GPS time without satellites
 			if self.num_sats == 0:
 				self.date_time = None
@@ -154,10 +158,10 @@ class ModelGpsReceiver(object):
 					# 3 satellites sufficient for 2-D fix if forced
 					self.altitude = None
 				else:
-					self.fix = GPS_INVALID_FIX
+					self.fix = 'GPS_INVALID_FIX'
 
 		# Force blank fields if there is no fix
-		if self.fix == GPS_INVALID_FIX:
+		if self.fix == 'GPS_INVALID_FIX':
 			self.lat = None
 			self.lon = None
 			self.altitude = None
@@ -184,16 +188,16 @@ class ModelGpsReceiver(object):
 
 		# Convert fix type to optional NMEA 2.3 solution 'mode'
 		if self.solution != None:
-			if self.fix == GPS_INVALID_FIX:
-				self.solution = GPS_INVALID_SOLUTION
-			elif self.fix == GPS_DEAD_RECKONING_FIX or self.fix == GPS_MANUAL_INPUT:
-				self.solution = GPS_ESTIMATED_SOLUTION
-			elif self.fix == GPS_SIMULATION:
-				self.solution = GPS_SIMULATOR_SOLUTION
-			elif self.fix == GPS_DGPS_FIX:
-				self.solution = GPS_DIFFERENTIAL_SOLUTION
+			if self.fix == 'GPS_INVALID_FIX':
+				self.solution = 'GPS_INVALID_SOLUTION'
+			elif self.fix == 'GPS_DEAD_RECKONING_FIX' or self.fix == 'GPS_MANUAL_INPUT_FIX':
+				self.solution = 'GPS_ESTIMATED_SOLUTION'
+			elif self.fix == 'GPS_SIMULATED_FIX':
+				self.solution = 'GPS_SIMULATOR_SOLUTION'
+			elif self.fix == 'GPS_DGPS_FIX':
+				self.solution = 'GPS_DIFFERENTIAL_SOLUTION'
 			else:
-				self.solution = GPS_AUTONOMOUS_SOLUTION
+				self.solution = 'GPS_AUTONOMOUS_SOLUTION'
 
 		# Convert decimal latitude to NMEA friendly form
 		if self.lat != None:
@@ -278,7 +282,7 @@ class ModelGpsReceiver(object):
 		
 		data += self.__nmea_lat_lon() + ','
 		
-		data += self.fix + ',' + ('%2d' % self.num_sats) + ','
+		data += fix_types[self.fix] + ',' + ('%2d' % self.num_sats) + ','
 		
 		if self.hdop != None:
 			data += ('%.1f' % self.hdop)
@@ -330,8 +334,8 @@ class ModelGpsReceiver(object):
 		else:
 			data += ','
 
-		if self.solution != None:
-			data += ',' + self.solution
+		if self.solution != '':
+			data += ',' + solution_modes[self.solution]
 
 		return [self.__format_sentence('GPRMC,' + data)]
 
@@ -420,8 +424,8 @@ class ModelGpsReceiver(object):
 		else:
 			data += ',N,,K'
 
-		if self.solution != None:
-			data += ',' + self.solution
+		if self.solution != '':
+			data += ',' + solution_modes[self.solution]
 
 		return [self.__format_sentence('GPVTG,' + data)]
 
@@ -436,8 +440,8 @@ class ModelGpsReceiver(object):
 
 		data += self.__validity
 
-		if self.solution != None:
-			data += ',' + self.solution
+		if self.solution != '':
+			data += ',' + solution_modes[self.solution]
 
 		return [self.__format_sentence('GPGLL,' + data)]
 
@@ -465,9 +469,19 @@ class ModelGpsReceiver(object):
 
 		return [self.__format_sentence('GPZDA,' + data)]
 
-	def __init__(self, output=('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV', 'GPRMC', 'GPVTG', 'GPZDA'), solution=GPS_AUTONOMOUS_SOLUTION, fix=GPS_SPS_FIX, manual_2d=False, horizontal_dp=3, vertical_dp=1, speed_dp=1, time_dp=3, angle_dp=1, date_time=datetime.datetime.now(TimeZone(time.timezone)), lat=0.0, lon=0.0, altitude=0.0, geoid_sep=0.0, kph=0.0, heading=0.0, mag_heading=None, mag_var=0.0, num_sats=12, hdop=1.0, vdop=1.0, pdop=1.0, last_dgps=None, dgps_station=None):
+	def __init__(self, output=('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV', 'GPRMC', 'GPVTG', 'GPZDA'), solution='GPS_AUTONOMOUS_SOLUTION', fix='GPS_SPS_FIX', manual_2d=False, horizontal_dp=3, vertical_dp=1, speed_dp=1, time_dp=3, angle_dp=1, date_time=datetime.datetime.now(TimeZone(time.timezone)), lat=0.0, lon=0.0, altitude=0.0, geoid_sep=0.0, kph=0.0, heading=0.0, mag_heading=None, mag_var=0.0, num_sats=12, hdop=1.0, vdop=1.0, pdop=1.0, last_dgps=None, dgps_station=None):
 		''' Initialise the GPS instance with initial configuration.
 		'''
+		# Populate the sentence generation table
+		self.__gen_nmea = {}
+		self.__gen_nmea['GPGGA'] = self.__gpgga
+		self.__gen_nmea['GPGSA'] = self.__gpgsa
+		self.__gen_nmea['GPGSV'] = self.__gpgsv
+		self.__gen_nmea['GPRMC'] = self.__gprmc
+		self.__gen_nmea['GPVTG'] = self.__gpvtg
+		self.__gen_nmea['GPGLL'] = self.__gpgll
+		self.__gen_nmea['GPZDA'] = self.__gpzda
+		
 		# Record parameters
 		self.solution = solution
 		self.fix = fix
@@ -501,17 +515,7 @@ class ModelGpsReceiver(object):
 		# Smart setter will configure satellites as appropriate
 		self.num_sats = num_sats
 
-		self.__fix()
-
-		# Populate the sentence generation table
-		self.__gen_nmea = {}
-		self.__gen_nmea['GPGGA'] = self.__gpgga
-		self.__gen_nmea['GPGSA'] = self.__gpgsa
-		self.__gen_nmea['GPGSV'] = self.__gpgsv
-		self.__gen_nmea['GPRMC'] = self.__gprmc
-		self.__gen_nmea['GPVTG'] = self.__gpvtg
-		self.__gen_nmea['GPGLL'] = self.__gpgll
-		self.__gen_nmea['GPZDA'] = self.__gpzda
+		self.__recalculate()
 
 	@property
 	def num_sats(self):
@@ -527,19 +531,50 @@ class ModelGpsReceiver(object):
 		for i in range(value, len(self.satellites)):
 			self.satellites[i].elevation = -90
 		self.satellites.sort(key=operator.attrgetter('prn', ))
-		self.__fix()
+		self.__recalculate()
+
+	@property
+	def output(self):
+		return self.__output
+
+	@output.setter
+	def output(self, value):
+		for item in value:
+			assert item in self.__gen_nmea.keys()
+		self.__output = value
+
+	@property
+	def fix(self):
+		return self.__fix
+
+	@fix.setter
+	def fix(self, value):
+		assert value in fix_types
+		self.__fix = value
+
+	@property
+	def solution(self):
+		return self.__solution
+
+	@solution.setter
+	def solution(self, value):
+		assert (value == None or value in solution_modes)
+		if value == '':
+			self.__solution = None
+		else:
+			self.__solution = value
 
 	def move(self, duration=1.0):
 		''' 'Move' the GPS instance for the specified duration in seconds based on current heading and velocity.
 		'''
-		self.__fix()
+		self.__recalculate()
 		if self.lat != None and self.lon != None and self.kph != None and self.heading != None:
 			speed_ms = self.kph * 1000.0 / 3600.0
 			d = speed_ms * duration
 			out = Geodesic.WGS84.Direct(self.lat, self.lon, self.heading, d)
 			self.lat = out['lat2']
 			self.lon = out['lon2']
-			self.__fix()
+			self.__recalculate()
 
 	def distance(self, other_lat, other_lon):
 		''' Returns the current distance (in km) between the GPS instance and an arbitrary lat/lon coordinate.
@@ -550,13 +585,18 @@ class ModelGpsReceiver(object):
 		return '$' + data + '*' + self.__checksum(data)
 
 	def get_output(self):
-		''' Returns a list of NMEA strings that the GPS instance was configured to output.
+		''' Returns a list of NMEA sentences (not new line terminated) that the GPS instance was configured to output.
 		'''
-		self.__fix()
+		self.__recalculate()
 		outputs = []
 		for format in self.output:
 			outputs += self.__gen_nmea[format]()
 		return outputs
+
+	def supported_output(self):
+		''' Returns a tuple of supported NMEA sentences that the GPS model class is capable of producing.
+		'''
+		return self.__gen_nmea.keys()
 
 class GpsSim(object):
 	''' GPS simulator class based on a ModelGpsReceiver
