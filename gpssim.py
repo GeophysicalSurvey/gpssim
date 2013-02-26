@@ -342,7 +342,7 @@ class ModelGpsReceiver(object):
 		else:
 			data += ','
 
-		if self.solution != '':
+		if self.solution != None:
 			data += ',' + solution_modes[self.solution]
 
 		return [self.__format_sentence('GPRMC,' + data)]
@@ -432,7 +432,7 @@ class ModelGpsReceiver(object):
 		else:
 			data += ',N,,K'
 
-		if self.solution != '':
+		if self.solution != None:
 			data += ',' + solution_modes[self.solution]
 
 		return [self.__format_sentence('GPVTG,' + data)]
@@ -448,7 +448,7 @@ class ModelGpsReceiver(object):
 
 		data += self.__validity
 
-		if self.solution != '':
+		if self.solution != None:
 			data += ',' + solution_modes[self.solution]
 
 		return [self.__format_sentence('GPGLL,' + data)]
@@ -567,10 +567,7 @@ class ModelGpsReceiver(object):
 	@solution.setter
 	def solution(self, value):
 		assert (value == None or value in solution_modes)
-		if value == '':
-			self.__solution = None
-		else:
-			self.__solution = value
+		self.__solution = value
 
 	def move(self, duration=1.0):
 		''' 'Move' the GPS instance for the specified duration in seconds based on current heading and velocity.
