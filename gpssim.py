@@ -656,8 +656,9 @@ class GpsSim(object):
 			if self.comport.port is not None:
 				self.comport.close()
 		
-	def serve(self, comport):
-		''' Start serving GPS simulator on the specified COM port (and stdout) until an exception (e.g KeyboardInterrupt).
+	def serve(self, comport, blocking=True):
+		''' Start serving GPS simulator on the specified COM port (and stdout)
+		    and optionally blocks until an exception (e.g KeyboardInterrupt).
           Port may be None to send to stdout only.
 		'''
 		self.kill()
@@ -666,11 +667,12 @@ class GpsSim(object):
 		self.__worker = threading.Thread(target=self.__action)
 		self.__worker.daemon = True
 		self.__worker.start()
-		try:
-			while True:
-				self.__worker.join(60)
-		except:
-			self.kill()
+		if blocking:
+			try:
+				while True:
+					self.__worker.join(60)
+			except:
+				self.kill()
 		
 	def kill(self):
 		''' Issue the kill command to the GPS simulator thread and wait for it to die.
