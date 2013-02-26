@@ -122,7 +122,7 @@ labels[vars.keys()[-1]] = Tkinter.Label(root, text='Time since DGPS update (s):'
 controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
 
 vars['date_time'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Initial ISO 8601 date/time:')
+labels[vars.keys()[-1]] = Tkinter.Label(root, text='Initial ISO 8601 date/time/offset:')
 vars[vars.keys()[-1]].set(datetime.datetime.now(gpssim.TimeZone(time.timezone)).isoformat())
 controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
 
@@ -169,6 +169,11 @@ controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], w
 vars['heading'] = Tkinter.StringVar()
 labels[vars.keys()[-1]] = Tkinter.Label(root, text='Heading (deg True):')
 vars[vars.keys()[-1]].set('123.56')
+controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+
+vars['heading_variation'] = Tkinter.StringVar()
+labels[vars.keys()[-1]] = Tkinter.Label(root, text='Simulated heading variation (deg):')
+vars[vars.keys()[-1]].set('')
 controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
 
 vars['mag_heading'] = Tkinter.StringVar()
@@ -336,6 +341,12 @@ def simulate():
 		except:
 			sim.gps.pdop = None
 			vars['pdop'].set('')
+
+		try:
+			sim.heading_variation = float(vars['heading_variation'].get())
+		except:
+			sim.heading_variation = None
+			vars['heading_variation'].set('')
 
 		sim.comport.baudrate = vars['baudrate'].get()
 
