@@ -204,12 +204,20 @@ class ModelGpsReceiver(object):
 			self.__lat_sign = 'S' if self.lat < 0 else 'N'
 			self.__lat_degrees = int(abs(self.lat))
 			self.__lat_minutes = (abs(self.lat) - self.__lat_degrees) * 60
+			# Take care of weird rounding
+			if round(self.__lat_minutes, self.horizontal_dp) >= 60:
+				self.__lat_degrees += 1
+				self.__lat_minutes = 0
 
 		# Convert decimal longitude to NMEA friendly form
 		if self.lon != None:
 			self.__lon_sign = 'W' if self.lon < 0 else 'E'
 			self.__lon_degrees = int(abs(self.lon))
 			self.__lon_minutes = (abs(self.lon) - self.__lon_degrees) * 60
+			# Take care of weird rounding
+			if round(self.__lon_minutes, self.horizontal_dp) >= 60:
+				self.__lon_degrees += 1
+				self.__lon_minutes = 0
 
 		# Convert decimal magnetic variation to NMEA friendly form
 		if self.mag_var != None:
@@ -568,7 +576,7 @@ class ModelGpsReceiver(object):
 		''' 'Move' the GPS instance for the specified duration in seconds based on current heading and velocity.
 		'''
 		self.__recalculate()
-		if self.lat != None and self.lon != None and self.kph != None and self.heading != None:
+		if self.lat != None and self.lon != None and self.heading != None and self.kph != None and self.kph > sys.float_info.epsilon:
 			speed_ms = self.kph * 1000.0 / 3600.0
 			d = speed_ms * duration
 			out = Geodesic.WGS84.Direct(self.lat, self.lon, self.heading, d)
