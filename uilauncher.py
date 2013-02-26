@@ -21,6 +21,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
 import Tkinter
+import tkFont
 import collections
 import gpssim
 import glob
@@ -62,7 +63,9 @@ ports.sort(key=lambda key: [try_digit(chunk) for chunk in re.split('([0-9]+)', k
 root = Tkinter.Tk()
 root.title('gpssim')
 
-textwidth = 50 # text field width
+textwidth = 60 # text field width
+customFont = tkFont.Font(size=10)
+smallerFont = tkFont.Font(size=9)
 
 # UI collection
 vars = collections.OrderedDict()
@@ -78,152 +81,166 @@ for format in formats:
 	if format != formats[-1]:
 		defaultformatstring += ', '
 
+frame = Tkinter.LabelFrame(text='Configuration', padx=5, pady=5)
+
 # Instantiate configuration variables and their respective label/edit fields.
 vars['output'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Formats (ordered):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Formats (ordered):')
 vars[vars.keys()[-1]].set(defaultformatstring)
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
+
+bgcolor = controls[vars.keys()[-1]].cget('background')
 
 vars['comport'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='COM port (optional):')
-controls[vars.keys()[-1]] = apply(Tkinter.OptionMenu, (root, vars[vars.keys()[-1]]) + tuple(ports))
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='COM port (optional):')
+controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame, vars[vars.keys()[-1]], *tuple(ports))
 
 vars['baudrate'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Baud rate:')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Baud rate:')
 vars[vars.keys()[-1]].set(4800)
-controls[vars.keys()[-1]] = apply(Tkinter.OptionMenu, (root, vars[vars.keys()[-1]]) + tuple(serial.Serial.BAUDRATES[serial.Serial.BAUDRATES.index(4800):]))
+controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame, vars[vars.keys()[-1]], *tuple(serial.Serial.BAUDRATES[serial.Serial.BAUDRATES.index(4800):]))
 
 vars['fix'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Fix type:')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Fix type:')
 vars[vars.keys()[-1]].set('GPS_SPS_FIX')
-controls[vars.keys()[-1]] = apply(Tkinter.OptionMenu, (root, vars[vars.keys()[-1]]) + tuple(gpssim.fix_types.keys()))
+controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame, vars[vars.keys()[-1]], *tuple(gpssim.fix_types.keys()))
 
 vars['solution'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='FAA solution mode:')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='FAA solution mode:')
 vars[vars.keys()[-1]].set('GPS_AUTONOMOUS_SOLUTION')
-controls[vars.keys()[-1]] = apply(Tkinter.OptionMenu, (root, vars[vars.keys()[-1]]) + tuple(gpssim.solution_modes.keys()))
+controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame, vars[vars.keys()[-1]], *tuple(gpssim.solution_modes.keys()))
 
 vars['num_sats'] = Tkinter.IntVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Visible satellites:')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Visible satellites:')
 vars[vars.keys()[-1]].set(15)
-controls[vars.keys()[-1]] = apply(Tkinter.OptionMenu, (root, vars[vars.keys()[-1]]) + tuple(range(33)))
+controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame, vars[vars.keys()[-1]], *tuple(range(33)))
 
 vars['manual_2d'] = Tkinter.BooleanVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Manual 2-D mode:')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Manual 2-D mode:')
 vars[vars.keys()[-1]].set(False)
-controls[vars.keys()[-1]] = Tkinter.Checkbutton(root, text='', variable=vars[vars.keys()[-1]])
+controls[vars.keys()[-1]] = Tkinter.Checkbutton(frame, text='', variable=vars[vars.keys()[-1]])
 
 vars['dgps_station'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='DGPS Station ID:')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='DGPS Station ID:')
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['last_dgps'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Time since DGPS update (s):')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Time since DGPS update (s):')
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['date_time'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Initial ISO 8601 date/time/offset:')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Initial ISO 8601 date/time/offset:')
 vars[vars.keys()[-1]].set(datetime.datetime.now(gpssim.TimeZone(time.timezone)).isoformat())
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['time_dp'] = Tkinter.IntVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Time precision (d.p.):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Time precision (d.p.):')
 vars[vars.keys()[-1]].set('3')
-controls[vars.keys()[-1]] = apply(Tkinter.OptionMenu, (root, vars[vars.keys()[-1]]) + tuple(range(4)))
+controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame, vars[vars.keys()[-1]], *tuple(range(4)))
 
 vars['lat'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Latitude (deg):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Latitude (deg):')
 vars[vars.keys()[-1]].set('-45.352354')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['lon'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Longitude (deg):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Longitude (deg):')
 vars[vars.keys()[-1]].set('-134.687995')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['altitude'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Altitude (m):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Altitude (m):')
 vars[vars.keys()[-1]].set('-11.442')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['geoid_sep'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Geoid separation (m):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Geoid separation (m):')
 vars[vars.keys()[-1]].set('-42.55')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['horizontal_dp'] = Tkinter.IntVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Horizontal precision (d.p.):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Horizontal precision (d.p.):')
 vars[vars.keys()[-1]].set(3)
-controls[vars.keys()[-1]] = apply(Tkinter.OptionMenu, (root, vars[vars.keys()[-1]]) + tuple(range(1, 6)))
+controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame, vars[vars.keys()[-1]], *tuple(range(1, 6)))
 
 vars['vertical_dp'] = Tkinter.IntVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Vertical precision (d.p.):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Vertical precision (d.p.):')
 vars[vars.keys()[-1]].set(1)
-controls[vars.keys()[-1]] = apply(Tkinter.OptionMenu, (root, vars[vars.keys()[-1]]) + tuple(range(4)))
+controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame, vars[vars.keys()[-1]], *tuple(range(4)))
 
 vars['kph'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Speed (km/hr):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Speed (km/hr):')
 vars[vars.keys()[-1]].set('45.61')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['heading'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Heading (deg True):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Heading (deg True):')
 vars[vars.keys()[-1]].set('123.56')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['heading_variation'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Simulated heading variation (deg):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Simulated heading variation (deg):')
 vars[vars.keys()[-1]].set('')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['mag_heading'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Magnetic heading (deg True):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Magnetic heading (deg True):')
 vars[vars.keys()[-1]].set('124.67')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['mag_var'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Magnetic Variation (deg):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Magnetic Variation (deg):')
 vars[vars.keys()[-1]].set('-12.33')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['speed_dp'] = Tkinter.IntVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Speed precision (d.p.):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Speed precision (d.p.):')
 vars[vars.keys()[-1]].set(1)
-controls[vars.keys()[-1]] = apply(Tkinter.OptionMenu, (root, vars[vars.keys()[-1]]) + tuple(range(4)))
+controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame, vars[vars.keys()[-1]], *tuple(range(4)))
 
 vars['angle_dp'] = Tkinter.IntVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='Angular precision (d.p.):')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Angular precision (d.p.):')
 vars[vars.keys()[-1]].set(1)
-controls[vars.keys()[-1]] = apply(Tkinter.OptionMenu, (root, vars[vars.keys()[-1]]) + tuple(range(4)))
+controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame, vars[vars.keys()[-1]], *tuple(range(4)))
 
 vars['hdop'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='HDOP:')
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='HDOP:')
 vars[vars.keys()[-1]].set('3.0')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['vdop'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='VDOP:')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='VDOP:')
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['pdop'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(root, text='PDOP:')
-controls[vars.keys()[-1]] = Tkinter.Entry(root, textvar=vars[vars.keys()[-1]], width=textwidth)
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='PDOP:')
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 # Pack the controls
 current_row = 0
 for item in controls.keys():
+	labels[item].config(font=customFont)
 	labels[item].grid(row=current_row, sticky=Tkinter.E, column=0)
+	
 	if isinstance(controls[item], Tkinter.Entry):
+		controls[item].config(width=textwidth, font=customFont)
 		controls[item].grid(row=current_row, sticky=Tkinter.E+Tkinter.W, column=1)
+	elif isinstance(controls[item], Tkinter.OptionMenu):
+		controls[item].config(font=smallerFont, relief=Tkinter.SUNKEN, borderwidth=1, activebackground=bgcolor, background=bgcolor)
+		controls[item].grid(row=current_row, sticky=Tkinter.W, column=1)
 	else:
 		controls[item].grid(row=current_row, sticky=Tkinter.W, column=1)
 	current_row += 1
 
 # Function that gets called from the UI to start the simulator
 sim = gpssim.GpsSim()
-def simulate():
+def start():
 	global sim
-	sim.kill()
+
+	if sim.is_running():
+		sim.kill()
+
+	sim = gpssim.GpsSim()
 
 	# Change configuration under lock in case its already running from last time
 	with sim.lock:
@@ -355,11 +372,23 @@ def simulate():
 	if port == '':
 		port = None
 
-	print '\nStarting simulator...'
 	sim.serve(port, blocking=False)
+	if sim.is_running():
+		global startstopbutton
+		startstopbutton.config(command=stop, text='Stop')
 
-# The button that does everything
-Tkinter.Button(root, text='Go', command=simulate).grid(row=current_row+1, column=1, sticky=Tkinter.E+Tkinter.W)
+def stop():
+	global sim
+	global startstopbutton
+	
+	if sim.is_running():
+		sim.kill()
+	
+	startstopbutton.config(command=start, text='Start')
+
+frame.pack(padx=5, pady=5, side=Tkinter.TOP)
+startstopbutton = Tkinter.Button(root, text='Start', command=start)
+startstopbutton.pack(padx=5, pady=5, side=Tkinter.RIGHT)
 
 # Start the UI!
 root.mainloop()

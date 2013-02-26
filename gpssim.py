@@ -689,6 +689,11 @@ class GpsSim(object):
 		except KeyboardInterrupt:
 			pass
 
+	def is_running(self):
+		''' Is the simulator currently running?
+		'''
+		return self.__run.is_set() or self.__worker.is_alive()
+
 	def generate(self, duration):
 		''' Instantaneous generator for the GPS simulator - outputs data to stdout synchronously.
 		'''
