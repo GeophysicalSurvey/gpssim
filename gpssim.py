@@ -131,7 +131,7 @@ class ModelGpsReceiver(object):
 				satellite.azimuth += 180
 
 			# Fix azimuth wrap around
-			if satellite.azimuth > 360:
+			if satellite.azimuth >= 360:
 				satellite.azimuth -= 360
 			elif satellite.azimuth < 0:
 				satellite.azimuth += 360

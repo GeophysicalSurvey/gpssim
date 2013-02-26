@@ -257,8 +257,8 @@ def start():
 		
 		sim.gps.fix = vars['fix'].get()
 		sim.gps.solution = vars['solution'].get()
-		sim.gps.num_sats = vars['num_sats'].get()
 		sim.gps.manual_2d = vars['manual_2d'].get()
+		sim.gps.num_sats = vars['num_sats'].get()
 		
 		try:
 			sim.gps.dgps_station = int(vars['dgps_station'].get())
