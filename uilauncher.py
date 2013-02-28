@@ -280,16 +280,21 @@ def start():
 			sim.gps.last_dgps = None
 			vars['last_dgps'].set('')
 
-		try:
-			dt = vars['date_time'].get()
-			tz = dt[-6:].split(':')
-			dt = dt[:-6]
-			utcoffset = int(tz[0]) * 3600 + int(tz[1]) * 60
-			sim.gps.date_time = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S.%f')
-			sim.gps.date_time.replace(tzinfo=gpssim.TimeZone(utcoffset))
-		except:
-			sim.gps.date_time = datetime.datetime.now(gpssim.TimeZone(time.timezone))
-			vars['date_time'].set(sim.gps.date_time.isoformat())
+		dt = vars['date_time'].get()
+		if dt == '':
+			sim.gps.date_time = None
+		else:
+			try:
+				
+				
+					tz = dt[-6:].split(':')
+					dt = dt[:-6]
+					utcoffset = int(tz[0]) * 3600 + int(tz[1]) * 60
+					sim.gps.date_time = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S.%f')
+					sim.gps.date_time.replace(tzinfo=gpssim.TimeZone(utcoffset))
+			except:
+				sim.gps.date_time = datetime.datetime.now(gpssim.TimeZone(time.timezone))
+				vars['date_time'].set(sim.gps.date_time.isoformat())
 		
 		sim.gps.time_dp = vars['time_dp'].get()
 		
