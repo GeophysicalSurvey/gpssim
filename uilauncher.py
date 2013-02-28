@@ -62,6 +62,14 @@ ports.sort(key=lambda key: [try_digit(chunk) for chunk in re.split('([0-9]+)', k
 
 root = Tkinter.Tk()
 root.title('gpssim')
+icon = 'gpssim.ico'
+try:
+	root.iconbitmap(default='gpssim.ico')
+except:
+	try:
+		root.iconbitmap(os.path.join(sys._MEIPASS, icon))
+	except:
+		pass
 
 textwidth = 60 # text field width
 customFont = tkFont.Font(size=10)

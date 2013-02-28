@@ -8,8 +8,11 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
+	  [('gpssim.ico', '../gpssim.ico', 'DATA'), ('u', '', 'OPTION')],
           name=os.path.join('dist', 'gpssim.exe'),
           debug=False,
           strip=None,
           upx=True,
-          console=True , version='versioninfo')
+          console=True,
+          version='versioninfo',
+          icon='../gpssim.ico')
