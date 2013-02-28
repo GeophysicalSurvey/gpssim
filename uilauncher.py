@@ -108,6 +108,16 @@ labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Baud rate:')
 vars[vars.keys()[-1]].set(4800)
 controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame, vars[vars.keys()[-1]], *tuple(serial.Serial.BAUDRATES[serial.Serial.BAUDRATES.index(4800):]))
 
+vars['static'] = Tkinter.BooleanVar()
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Static output:')
+vars[vars.keys()[-1]].set(False)
+controls[vars.keys()[-1]] = Tkinter.Checkbutton(frame, text='', variable=vars[vars.keys()[-1]])
+
+vars['heading_variation'] = Tkinter.StringVar()
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Simulated heading variation (deg):')
+vars[vars.keys()[-1]].set('')
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
+
 vars['fix'] = Tkinter.StringVar()
 labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Fix type:')
 vars[vars.keys()[-1]].set('GPS_SPS_FIX')
@@ -186,11 +196,6 @@ labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Heading (deg True):')
 vars[vars.keys()[-1]].set('123.56')
 controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
-vars['heading_variation'] = Tkinter.StringVar()
-labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Simulated heading variation (deg):')
-vars[vars.keys()[-1]].set('')
-controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
-
 vars['mag_heading'] = Tkinter.StringVar()
 labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Magnetic heading (deg True):')
 vars[vars.keys()[-1]].set('124.67')
@@ -263,6 +268,8 @@ def start():
 			formats = [x.strip() for x in vars['output'].get().split(',')]
 			sim.gps.output = formats
 		
+		sim.static = float(vars['static'].get())
+		
 		sim.gps.fix = vars['fix'].get()
 		sim.gps.solution = vars['solution'].get()
 		sim.gps.manual_2d = vars['manual_2d'].get()
@@ -285,13 +292,11 @@ def start():
 			sim.gps.date_time = None
 		else:
 			try:
-				
-				
-					tz = dt[-6:].split(':')
-					dt = dt[:-6]
-					utcoffset = int(tz[0]) * 3600 + int(tz[1]) * 60
-					sim.gps.date_time = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S.%f')
-					sim.gps.date_time.replace(tzinfo=gpssim.TimeZone(utcoffset))
+				tz = dt[-6:].split(':')
+				dt = dt[:-6]
+				utcoffset = int(tz[0]) * 3600 + int(tz[1]) * 60
+				sim.gps.date_time = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S.%f')
+				sim.gps.date_time.replace(tzinfo=gpssim.TimeZone(utcoffset))
 			except:
 				sim.gps.date_time = datetime.datetime.now(gpssim.TimeZone(time.timezone))
 				vars['date_time'].set(sim.gps.date_time.isoformat())

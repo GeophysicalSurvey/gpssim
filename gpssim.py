@@ -616,13 +616,14 @@ class GpsSim(object):
 	Provides simulated NMEA output based on a ModelGpsReceiver instance over serial and/or stdout.
 	Supports satellite model perturbation and random walk heading adjustment.
 	'''
-	def __init__(self, gps=ModelGpsReceiver(), heading_variation=45):
+	def __init__(self, gps=ModelGpsReceiver(), static=False, heading_variation=45):
 		''' Initialise the GPS simulator instance with initial configuration.
 		'''
 		self.__worker = threading.Thread(target=self.__action)
 		self.__run = threading.Event()
 		self.gps = gps
 		self.heading_variation = heading_variation
+		self.static = static
 		self.comport = serial.Serial()
 		self.comport.baudrate = 4800
 		self.lock = threading.Lock()
@@ -631,6 +632,9 @@ class GpsSim(object):
 		''' Iterate a simulation step for the specified duration in seconds, moving the GPS instance and updating state.
 		Should be called while under lock conditions.
 		'''
+		if self.static:
+			return
+
 		if self.gps.date_time != None:
 			self.gps.date_time += datetime.timedelta(seconds=duration)
 			
