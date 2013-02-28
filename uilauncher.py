@@ -375,16 +375,22 @@ def start():
 	sim.serve(port, blocking=False)
 	if sim.is_running():
 		global startstopbutton
+		global controls
 		startstopbutton.config(command=stop, text='Stop')
+		for item in controls.keys():
+			controls[item].config(state=Tkinter.DISABLED)
 
 def stop():
 	global sim
 	global startstopbutton
+	global controls
 	
 	if sim.is_running():
 		sim.kill()
 	
 	startstopbutton.config(command=start, text='Start')
+	for item in controls.keys():
+		controls[item].config(state=Tkinter.NORMAL)
 
 frame.pack(padx=5, pady=5, side=Tkinter.TOP)
 startstopbutton = Tkinter.Button(root, text='Start', command=start)
