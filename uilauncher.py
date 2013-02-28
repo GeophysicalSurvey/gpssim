@@ -280,8 +280,8 @@ def start():
 			sim.gps.date_time = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S.%f')
 			sim.gps.date_time.replace(tzinfo=gpssim.TimeZone(utcoffset))
 		except:
-			sim.gps.date_time = None
-			vars['date_time'].set(datetime.datetime.now(gpssim.TimeZone(time.timezone)).isoformat())
+			sim.gps.date_time = datetime.datetime.now(gpssim.TimeZone(time.timezone))
+			vars['date_time'].set(sim.gps.date_time.isoformat())
 		
 		sim.gps.time_dp = vars['time_dp'].get()
 		
