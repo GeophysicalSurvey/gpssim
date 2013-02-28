@@ -243,11 +243,19 @@ class ModelGpsReceiver(object):
 				self.mag_heading += 360
 
 		# Generate string specifications for various fields
-		self.__horizontal_spec = ('%%0%d' % (self.horizontal_dp + 3)) + ('.%df' % self.horizontal_dp)
 		self.__vertical_spec = '%%.%df' % self.vertical_dp
 		self.__angle_spec = '%%.%df' % self.angle_dp
 		self.__speed_spec = '%%.%df' % self.speed_dp
-		self.__time_spec = ('%%0%d' % (self.time_dp + 3)) + ('.%df' % self.time_dp)
+
+		if self.time_dp > 0:
+			self.__time_spec = ('%%0%d' % (self.time_dp + 3)) + ('.%df' % self.time_dp)
+		else:
+			self.__time_spec = '%02d'
+
+		if self.horizontal_dp > 0:
+			self.__horizontal_spec = ('%%0%d' % (self.horizontal_dp + 3)) + ('.%df' % self.horizontal_dp)
+		else:
+			self.__horizontal_spec = '%02d'
 		
 	def __format_sentence(self, data):
 		''' Format an NMEA sentence, pre-pending with '$' and post-pending checksum.
