@@ -146,6 +146,10 @@ class ModelGpsReceiver(object):
 				# If above horizon, treat as visible
 				self.__visible_prns.append(satellite.prn)
 
+		# Optional NMEA 2.3 solution 'mode' has priority if present when determining validity
+		if self.solution == 'GPS_INVALID_SOLUTION':
+			self.fix = 'GPS_INVALID_FIX'
+
 		# For real fixes correct for number of satellites
 		if self.fix != 'GPS_DEAD_RECKONING_FIX' and self.fix != 'GPS_MANUAL_INPUT_FIX' and self.fix != 'GPS_SIMULATED_FIX':
 			# Cannot have GPS time without satellites
@@ -175,6 +179,8 @@ class ModelGpsReceiver(object):
 			self.mag_var = None
 			self.__validity = ModelGpsReceiver.__GPS_INVALID_FIX
 			self.__mode = ModelGpsReceiver.__GPS_SOLUTION_NA
+			if self.solution != None:
+				self.solution = 'GPS_INVALID_SOLUTION'
 		else:
 			self.__validity = ModelGpsReceiver.__GPS_VALID_FIX
 			self.__mode = ModelGpsReceiver.__GPS_SOLUTION_3D
@@ -185,19 +191,6 @@ class ModelGpsReceiver(object):
 			self.pdop = None
 			if self.__mode != ModelGpsReceiver.__GPS_SOLUTION_NA:
 				self.__mode = ModelGpsReceiver.__GPS_SOLUTION_2D
-
-		# Convert fix type to optional NMEA 2.3 solution 'mode'
-		if self.solution != None:
-			if self.fix == 'GPS_INVALID_FIX':
-				self.solution = 'GPS_INVALID_SOLUTION'
-			elif self.fix == 'GPS_DEAD_RECKONING_FIX' or self.fix == 'GPS_MANUAL_INPUT_FIX':
-				self.solution = 'GPS_ESTIMATED_SOLUTION'
-			elif self.fix == 'GPS_SIMULATED_FIX':
-				self.solution = 'GPS_SIMULATOR_SOLUTION'
-			elif self.fix == 'GPS_DGPS_FIX':
-				self.solution = 'GPS_DIFFERENTIAL_SOLUTION'
-			else:
-				self.solution = 'GPS_AUTONOMOUS_SOLUTION'
 
 		# Convert decimal latitude to NMEA friendly form
 		if self.lat != None:
