@@ -247,6 +247,112 @@ for item in controls.keys():
 
 # Function that gets called from the UI to start the simulator
 sim = gpssim.GpsSim()
+
+def update():
+	global sim
+	with sim.lock:
+		formatstring = ''
+		for format in sim.gps.output:
+			formatstring += format
+			if format != formats[-1]:
+				formatstring += ', '
+
+		vars['output'].set(formatstring)
+		vars['static'].set(sim.static)
+
+		if sim.heading_variation == None:
+			vars['heading_variation'].set('')
+		else:
+			vars['heading_variation'].set(str(sim.heading_variation))
+
+		vars['fix'].set(sim.gps.fix)
+		vars['solution'].set(sim.gps.solution)
+		vars['num_sats'].set(sim.gps.num_sats)
+		vars['manual_2d'].set(sim.gps.manual_2d)
+
+		if sim.gps.dgps_station == None:
+			vars['dgps_station'].set('')
+		else:
+			vars['dgps_station'].set(str(sim.gps.dgps_station))
+
+		if sim.gps.last_dgps == None:
+			vars['last_dgps'].set('')
+		else:
+			vars['last_dgps'].set(str(sim.gps.last_dgps))
+
+		if sim.gps.date_time == None:
+			vars['date_time'].set('')
+		else:
+			vars['date_time'].set(str(sim.gps.date_time.isoformat()))
+
+		vars['time_dp'].set(sim.gps.time_dp)
+
+		if sim.gps.lat == None:
+			vars['lat'].set('')
+		else:
+			vars['lat'].set(str(sim.gps.lat))
+
+		if sim.gps.lon == None:
+			vars['lon'].set('')
+		else:
+			vars['lon'].set(str(sim.gps.lon))
+
+		if sim.gps.altitude == None:
+			vars['altitude'].set('')
+		else:
+			vars['altitude'].set(str(sim.gps.altitude))
+
+		if sim.gps.geoid_sep == None:
+			vars['geoid_sep'].set('')
+		else:
+			vars['geoid_sep'].set(str(sim.gps.lat))
+
+		vars['horizontal_dp'].set(sim.gps.horizontal_dp)
+		vars['vertical_dp'].set(sim.gps.vertical_dp)
+
+		if sim.gps.kph == None:
+			vars['kph'].set('')
+		else:
+			vars['kph'].set(str(sim.gps.kph))
+
+		if sim.gps.heading == None:
+			vars['heading'].set('')
+		else:
+			vars['heading'].set(str(sim.gps.heading))
+
+		if sim.gps.mag_heading == None:
+			vars['mag_heading'].set('')
+		else:
+			vars['mag_heading'].set(str(sim.gps.mag_heading))
+
+		if sim.gps.mag_var == None:
+			vars['mag_var'].set('')
+		else:
+			vars['mag_var'].set(str(sim.gps.mag_var))
+
+		vars['speed_dp'].set(sim.gps.speed_dp)
+		vars['angle_dp'].set(sim.gps.angle_dp)
+
+		if sim.gps.hdop == None:
+			vars['hdop'].set('')
+		else:
+			vars['hdop'].set(str(sim.gps.hdop))
+
+		if sim.gps.vdop == None:
+			vars['vdop'].set('')
+		else:
+			vars['vdop'].set(str(sim.gps.vdop))
+
+		if sim.gps.vdop == None:
+			vars['vdop'].set('')
+		else:
+			vars['pdop'].set(str(sim.gps.pdop))
+
+def poll():
+	if sim.is_running():
+		root.after(200, poll)
+		update()
+
 def start():
 	global sim
 
@@ -268,8 +374,14 @@ def start():
 			formats = [x.strip() for x in vars['output'].get().split(',')]
 			sim.gps.output = formats
 		
-		sim.static = float(vars['static'].get())
-		
+		sim.static = vars['static'].get()
+
+		try:
+			sim.heading_variation = float(vars['heading_variation'].get())
+		except:
+			sim.heading_variation = None
+			vars['heading_variation'].set('')
+
 		sim.gps.fix = vars['fix'].get()
 		sim.gps.solution = vars['solution'].get()
 		sim.gps.manual_2d = vars['manual_2d'].get()
@@ -295,6 +407,7 @@ def start():
 				tz = dt[-6:].split(':')
 				dt = dt[:-6]
 				utcoffset = int(tz[0]) * 3600 + int(tz[1]) * 60
+				
 				sim.gps.date_time = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S.%f')
 				sim.gps.date_time = sim.gps.date_time.replace(tzinfo=gpssim.TimeZone(utcoffset))
 			except:
@@ -377,15 +490,9 @@ def start():
 			sim.gps.pdop = None
 			vars['pdop'].set('')
 
-		try:
-			sim.heading_variation = float(vars['heading_variation'].get())
-		except:
-			sim.heading_variation = None
-			vars['heading_variation'].set('')
-
 		sim.comport.baudrate = vars['baudrate'].get()
 
-	# Finally start serving (non-blocking as we are in an asynchronous UI thread
+	# Finally start serving (non-blocking as we are in an asynchronous UI thread)
 	port = vars['comport'].get()
 	if port == '':
 		port = None
@@ -397,16 +504,20 @@ def start():
 		startstopbutton.config(command=stop, text='Stop')
 		for item in controls.keys():
 			controls[item].config(state=Tkinter.DISABLED)
+		poll()
 
 def stop():
 	global sim
 	global startstopbutton
 	global controls
-	
+
 	if sim.is_running():
 		sim.kill()
 	
 	startstopbutton.config(command=start, text='Start')
+	
+	update()
+	
 	for item in controls.keys():
 		controls[item].config(state=Tkinter.NORMAL)
 
