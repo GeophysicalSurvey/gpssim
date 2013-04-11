@@ -61,13 +61,21 @@ try_digit = lambda text: int(text) if text.isdigit() else text
 ports.sort(key=lambda key: [try_digit(chunk) for chunk in re.split('([0-9]+)', key)])
 
 root = Tkinter.Tk()
-root.title('gpssim')
+	
+try:
+	with open(os.path.join(sys._MEIPASS, 'versionnumberstring')) as file:
+		versionnumberstring = ' (' + file.read() + ')'
+except:
+	versionnumberstring = ' (debug)'
+
+root.title('gpssim' + versionnumberstring)
+
 icon = 'gpssim.ico'
 try:
-	root.iconbitmap(default='gpssim.ico')
+	root.iconbitmap(os.path.join(sys._MEIPASS, icon))
 except:
 	try:
-		root.iconbitmap(os.path.join(sys._MEIPASS, icon))
+		root.iconbitmap(icon)
 	except:
 		pass
 
