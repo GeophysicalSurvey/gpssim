@@ -617,6 +617,8 @@ class GpsSim(object):
 		self.gps = gps
 		self.heading_variation = heading_variation
 		self.static = static
+		self.interval = 1.0
+		self.step = 1.0
 		self.comport = serial.Serial()
 		self.comport.baudrate = 4800
 		self.lock = threading.Lock()
@@ -651,18 +653,26 @@ class GpsSim(object):
 				self.comport.open()
 		while self.__run.is_set():
 			start = time.time()
-			with self.lock:
-				output = self.gps.get_output()
+			if self.__run.is_set():
+				with self.lock:
+					output = self.gps.get_output()
+			if self.__run.is_set():
 				for sentence in output:
-					print sentence
 					if not self.__run.is_set():
 						break
+					print sentence
 					if self.comport.port is not None:
 						self.comport.write(sentence + '\r\n')
-			while time.time() - start < 1.0 and self.__run.is_set():
+			if self.__run.is_set():
+				time.sleep(0.1) # Minimum sleep to avoid long lock ups
+			while self.__run.is_set() and time.time() - start < self.interval:
 				time.sleep(0.1)
-			with self.lock:
-				self.__step(time.time() - start)
+			if self.__run.is_set():
+				with self.lock:
+					if self.step == self.interval:
+						self.__step(time.time() - start)
+					else:
+						self.__step(self.step)
 
 		with self.lock:
 			if self.comport.port is not None:
@@ -712,7 +722,7 @@ class GpsSim(object):
 				output = self.gps.get_output()
 				for sentence in output:
 					print sentence
-				self.__step(1.0)
+				self.__step(self.step)
 				now = self.gps.date_time
 
 if __name__ == '__main__':

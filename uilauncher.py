@@ -121,6 +121,21 @@ labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Static output:')
 vars[vars.keys()[-1]].set(False)
 controls[vars.keys()[-1]] = Tkinter.Checkbutton(frame, text='', variable=vars[vars.keys()[-1]])
 
+vars['static'] = Tkinter.BooleanVar()
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Static output:')
+vars[vars.keys()[-1]].set(False)
+controls[vars.keys()[-1]] = Tkinter.Checkbutton(frame, text='', variable=vars[vars.keys()[-1]])
+
+vars['interval'] = Tkinter.StringVar()
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Update Interval (s):')
+vars[vars.keys()[-1]].set('1.0')
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
+
+vars['step'] = Tkinter.StringVar()
+labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Simulation Step (s):')
+vars[vars.keys()[-1]].set('1.0')
+controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
+
 vars['heading_variation'] = Tkinter.StringVar()
 labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Simulated heading variation (deg):')
 vars[vars.keys()[-1]].set('')
@@ -267,6 +282,8 @@ def update():
 
 		vars['output'].set(formatstring)
 		vars['static'].set(sim.static)
+		vars['interval'].set(sim.interval)
+		vars['step'].set(sim.step)
 
 		if sim.heading_variation == None:
 			vars['heading_variation'].set('')
@@ -384,6 +401,16 @@ def start():
 			sim.gps.output = formats
             
 		sim.static = vars['static'].get()
+		try:
+			sim.interval = float(vars['interval'].get())
+		except:
+			sim.interval = 1.0
+			vars['interval'].set('1.0')
+		try:
+			sim.step = float(vars['step'].get())
+		except:
+			sim.step = 1.0
+			vars['step'].set('1.0')
 
 		try:
 			sim.heading_variation = float(vars['heading_variation'].get())
