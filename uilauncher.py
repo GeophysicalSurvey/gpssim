@@ -505,14 +505,13 @@ def start():
 	if port == '':
 		port = None
 
+	global startstopbutton
+	global controls
+	startstopbutton.config(command=stop, text='Stop')
+	for item in controls.keys():
+		controls[item].config(state=Tkinter.DISABLED)
+	poll()
 	sim.serve(port, blocking=False)
-	if sim.is_running():
-		global startstopbutton
-		global controls
-		startstopbutton.config(command=stop, text='Stop')
-		for item in controls.keys():
-			controls[item].config(state=Tkinter.DISABLED)
-		poll()
 
 def stop():
 	global sim
@@ -534,7 +533,10 @@ startstopbutton = Tkinter.Button(root, text='Start', command=start)
 startstopbutton.pack(padx=5, pady=5, side=Tkinter.RIGHT)
 
 # Start the UI!
-root.mainloop()
-
-# Clean up
-sim.kill()
+try:
+	root.mainloop()
+except KeyboardInterrupt:
+	pass
+finally:
+	# Clean up
+	sim.kill()

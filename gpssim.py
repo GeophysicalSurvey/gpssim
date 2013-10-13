@@ -655,6 +655,8 @@ class GpsSim(object):
 				output = self.gps.get_output()
 				for sentence in output:
 					print sentence
+					if not self.__run.is_set():
+						break
 					if self.comport.port is not None:
 						self.comport.write(sentence + '\r\n')
 			while time.time() - start < 1.0 and self.__run.is_set():
@@ -690,7 +692,7 @@ class GpsSim(object):
 		try:
 			while self.__worker.is_alive():
 				self.__run.clear()
-				self.__worker.join(0.5)
+				self.__worker.join(0.1)
 		except KeyboardInterrupt:
 			pass
 
