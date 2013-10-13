@@ -262,7 +262,7 @@ def update():
 		formatstring = ''
 		for format in sim.gps.output:
 			formatstring += format
-			if format != formats[-1]:
+			if format != sim.gps.output[-1]:
 				formatstring += ', '
 
 		vars['output'].set(formatstring)
@@ -378,10 +378,11 @@ def start():
 			formats = [x.strip() for x in vars['output'].get().split(',')]
 			sim.gps.output = formats
 		except:
+			raise        
 			vars['output'].set(defaultformatstring)
 			formats = [x.strip() for x in vars['output'].get().split(',')]
 			sim.gps.output = formats
-		
+            
 		sim.static = vars['static'].get()
 
 		try:
@@ -510,8 +511,8 @@ def start():
 	startstopbutton.config(command=stop, text='Stop')
 	for item in controls.keys():
 		controls[item].config(state=Tkinter.DISABLED)
-	poll()
 	sim.serve(port, blocking=False)
+	poll()
 
 def stop():
 	global sim
