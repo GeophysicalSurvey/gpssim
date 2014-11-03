@@ -36,7 +36,6 @@ import math
 import random
 import operator
 import collections
-import constants
 
 try:
 	import serial
@@ -51,7 +50,7 @@ except:
 	raise
 
 fix_types = collections.OrderedDict()
-fix_types[constants.GPS_INVALID_FIX] = '0'
+fix_types['GPS_INVALID_FIX'] = '0'
 fix_types['GPS_SPS_FIX'] = '1'
 fix_types['GPS_DGPS_FIX'] = '2'
 fix_types['GPS_PPS_FIX'] = '3'
@@ -640,7 +639,7 @@ class GpsSim(object):
 				satellite.elevation += perturbation
 				satellite.azimuth += perturbation
 
-		if self.heading_variation and self.gps.heading is not None:
+		if self.heading_variation:
 			self.gps.heading += (random.random() - 0.5) * self.heading_variation
 		
 		self.gps.move(duration)
