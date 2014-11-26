@@ -312,10 +312,10 @@ def update():
 
 		vars['time_dp'].set(sim.gps.time_dp)
 
-		if sim.gps.lat == None:
+		if sim.gps._lat == None:
 			vars['lat'].set('')
 		else:
-			vars['lat'].set(str(sim.gps.lat))
+			vars['lat'].set(str(sim.gps._lat))
 
 		if sim.gps.lon == None:
 			vars['lon'].set('')
@@ -330,7 +330,7 @@ def update():
 		if sim.gps.geoid_sep == None:
 			vars['geoid_sep'].set('')
 		else:
-			vars['geoid_sep'].set(str(sim.gps.lat))
+			vars['geoid_sep'].set(str(sim.gps._lat))
 
 		vars['horizontal_dp'].set(sim.gps.horizontal_dp)
 		vars['vertical_dp'].set(sim.gps.vertical_dp)
@@ -453,9 +453,9 @@ def start():
 		sim.gps.time_dp = vars['time_dp'].get()
 		
 		try:
-			sim.gps.lat = float(vars['lat'].get())
+			sim.gps._lat = float(vars['lat'].get())
 		except:
-			sim.gps.lat = None
+			sim.gps._lat = None
 			vars['lat'].set('')
 
 		try:
