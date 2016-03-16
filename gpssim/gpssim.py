@@ -809,7 +809,8 @@ class GpsSim(object):
 		with self.lock:
 			self.comport.port = comport
 			self.comport.open()
-			self.comport.write(self.gps.get_output()[0] + '\r\n')
+			for sentence in self.gps.get_output():
+				self.comport.write(sentence + '\r\n')
 			self.comport.close()
 
 if __name__ == '__main__':
