@@ -803,6 +803,15 @@ class GpsSim(object):
 				self.__step(self.step)
 				now = self.gps.date_time
 
+	def output_latest(self, comport):
+		'''Ouput the latest fix to a specified COM port.
+		'''
+		with self.lock:
+			self.comport.port = comport
+			self.comport.open()
+			self.comport.write(self.gps.get_output()[0] + '\r\n')
+			self.comport.close()
+
 if __name__ == '__main__':
 	sim = GpsSim()
 
