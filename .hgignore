@@ -1,0 +1,9 @@
+syntax: glob
+build/
+dist/
+*.pyc
+*.log
+*.pkg
+warngpssim.txt
+versionnumberstring
+versioninfo
