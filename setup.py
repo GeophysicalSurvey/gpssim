@@ -1,5 +1,6 @@
 from setuptools import setup
-from gpssim.version import __version__
+
+exec open('gpssim/version.py').read()
 
 setup(
     name = 'gpssim',

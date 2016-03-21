@@ -1,1 +1,1 @@
-__version__ ="version-not-set"
+__version__ = "version-not-set"
