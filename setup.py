@@ -1,9 +1,9 @@
 from setuptools import setup
-import gpssim
+from gpssim import __version__
 
 setup(
     name = 'gpssim',
-    version = gpssim.__version__,
+    version = __version__,
     description = 'A Python GPS simulation library',
     author = 'Wei Li Jiang',
     author_email = 'wjiang87@gmail.com',
