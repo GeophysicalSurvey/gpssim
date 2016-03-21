@@ -1,5 +1,5 @@
 from setuptools import setup
-from gpssim import __version__
+from gpssim.version import __version__
 
 setup(
     name = 'gpssim',
