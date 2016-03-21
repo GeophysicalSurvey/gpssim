@@ -1,9 +1,9 @@
 from setuptools import setup
-import subprocess
+import gpssim
 
 setup(
     name = 'gpssim',
-    version = subprocess.check_output(['hg', 'log', '-r', 'limit(.::, 1)', '--template', '{latesttag}.{latesttagdistance}']),
+    version = gpssim.__version__,
     description = 'A Python GPS simulation library',
     author = 'Wei Li Jiang',
     author_email = 'wjiang87@gmail.com',
