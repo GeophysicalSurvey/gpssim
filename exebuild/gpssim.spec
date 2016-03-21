@@ -1,7 +1,7 @@
 # -*- mode: python -*-
 
 import subprocess
-versionnumberstring = subprocess.check_output('hg log -r "limit(.::, 1)" --template {latesttag}.{latesttagdistance}')
+versionnumberstring = subprocess.check_output(['hg', 'log', '-r', 'limit(.::, 1)', '--template', '{latesttag}.{latesttagdistance}'])
 exename = 'gpssim-%s.exe' % (versionnumberstring)
 
 with open('versionnumberstring', 'w') as file:
