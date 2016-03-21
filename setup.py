@@ -1,5 +1,10 @@
 from setuptools import setup
 import subprocess
+import os
+import sys
+
+os.chdir(os.path.dirname(__file__))
+
 setup(
     name = 'gpssim',
     version = subprocess.check_output('hg log -r "limit(.::, 1)" --template {latesttag}.{latesttagdistance}'),
