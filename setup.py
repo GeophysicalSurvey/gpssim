@@ -10,6 +10,8 @@ setup(
     url = 'https://bitbucket.org/wjiang/gpssim',
     keywords = ['gps', 'nmea', 'simulator'],
     install_requires=["pySerial>=2.5-rc2", "geographiclib"],
-    test_suite="tests",    
+    entry_points={'gui_scripts': ['gpssim = uilauncher:main']},
+    test_suite="tests",
+	py_modules=["uilauncher"],
     packages=["gpssim"]
 )

@@ -556,15 +556,19 @@ def stop():
 	for item in controls.keys():
 		controls[item].config(state=Tkinter.NORMAL)
 
-frame.pack(padx=5, pady=5, side=Tkinter.TOP)
-startstopbutton = Tkinter.Button(root, text='Start', command=start)
-startstopbutton.pack(padx=5, pady=5, side=Tkinter.RIGHT)
+def main():
+	frame.pack(padx=5, pady=5, side=Tkinter.TOP)
+	startstopbutton = Tkinter.Button(root, text='Start', command=start)
+	startstopbutton.pack(padx=5, pady=5, side=Tkinter.RIGHT)
 
-# Start the UI!
-try:
-	root.mainloop()
-except KeyboardInterrupt:
-	pass
-finally:
-	# Clean up
-	sim.kill()
+	# Start the UI!
+	try:
+		root.mainloop()
+	except KeyboardInterrupt:
+		pass
+	finally:
+		# Clean up
+		sim.kill()
+
+if __name__ == "__main__":
+	main()
