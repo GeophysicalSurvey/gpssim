@@ -84,6 +84,8 @@ class TimeZone(datetime.tzinfo):
 		ss = int(self.utcdeltasec - mm * 60)
 		return 'GMT +%02d:%02d:%02d' % (hh, mm, ss)
 
+tz_local = TimeZone(time.timezone)
+
 class ModelSatellite(object):
 	''' Model class for a GPS satellite
 	'''
@@ -463,7 +465,7 @@ class ModelGpsReceiver(object):
 
 		return [self.__format_sentence('GPZDA,' + data)]
 
-	def __init__(self, output=('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV', 'GPRMC', 'GPVTG', 'GPZDA'), solution=constants.GPS_AUTONOMOUS_SOLUTION, fix=constants.GPS_SPS_FIX, manual_2d=False, horizontal_dp=3, vertical_dp=1, speed_dp=1, time_dp=3, angle_dp=1, date_time=datetime.datetime.now(TimeZone(time.timezone)), lat=0.0, lon=0.0, altitude=0.0, geoid_sep=0.0, kph=0.0, heading=0.0, mag_heading=None, mag_var=0.0, num_sats=12, hdop=1.0, vdop=1.0, pdop=1.0, last_dgps=None, dgps_station=None):
+	def __init__(self, output=('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV', 'GPRMC', 'GPVTG', 'GPZDA'), solution=constants.GPS_AUTONOMOUS_SOLUTION, fix=constants.GPS_SPS_FIX, manual_2d=False, horizontal_dp=3, vertical_dp=1, speed_dp=1, time_dp=3, angle_dp=1, date_time=0, lat=0.0, lon=0.0, altitude=0.0, geoid_sep=0.0, kph=0.0, heading=0.0, mag_heading=None, mag_var=0.0, num_sats=12, hdop=1.0, vdop=1.0, pdop=1.0, last_dgps=None, dgps_station=None):
 		''' Initialise the GPS instance with initial configuration.
 		'''
 		# Populate the sentence generation table
@@ -480,7 +482,10 @@ class ModelGpsReceiver(object):
 		self.solution = solution
 		self._fix = fix
 		self.manual_2d = manual_2d
-		self.date_time = date_time
+		if (date_time == 0):
+			self.date_time = datetime.datetime.now(tz_local)
+		else:
+			self.date_time = date_time
 		self._lat = lat
 		self._lon = lon
 		self.horizontal_dp = horizontal_dp

@@ -7,7 +7,7 @@ import unittest
 import traceback
 import datetime
 import random
-from gpssim import GpsSim, constants, ModelGpsReceiver
+from gpssim import GpsSim, constants, ModelGpsReceiver, TimeZone
 
 LAT = 0.0
 LON = 0.0
@@ -45,6 +45,8 @@ class TestModelGpsReceiver(unittest.TestCase):
     
     def setUp(self):
         random.seed(0)  #Necessary because some of the initial data eg PRNs is generated at random on initialisation
+        dt = datetime.datetime(2014, 11, 27, 9, 20, 53, 555000)
+        print dt.isoformat()
         self.gps = ModelGpsReceiver(lat=LAT,
                                     lon=LON,
                                     altitude=ALTITUDE,
@@ -56,7 +58,7 @@ class TestModelGpsReceiver(unittest.TestCase):
                                     heading=HEADING,
                                     mag_heading=MAG_HEADING,
                                     mag_var=MAG_VAR,
-                                    date_time=datetime.datetime.fromtimestamp(1417033253.555))
+                                    date_time=dt)
         
     def tearDown(self):
         pass
