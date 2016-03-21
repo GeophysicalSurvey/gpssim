@@ -24,4 +24,4 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Includes Public Domain icons from the Tango Desktop Project.
 
-Also see [the wiki](https://bitbucket.org/wjiang/gpssim/wiki/Home).
+Also see [Home](the wiki).
