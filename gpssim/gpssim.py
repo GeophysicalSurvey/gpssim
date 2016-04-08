@@ -154,7 +154,7 @@ class ModelGpsReceiver(object):
 			# Cannot have GPS time without satellites
 			if self.num_sats == 0:
 				self.date_time = None
-			
+
 			# Cannot have a fix if too few satellites
 			if self.num_sats < 4:
 				if self.manual_2d and self.num_sats == 3:
@@ -227,7 +227,7 @@ class ModelGpsReceiver(object):
 			self.__horizontal_spec = ('%%0%d' % (self.horizontal_dp + 3)) + ('.%df' % self.horizontal_dp)
 		else:
 			self.__horizontal_spec = '%02d'
-		
+
 	def __format_sentence(self, data):
 		''' Format an NMEA sentence, pre-pending with '$' and post-pending checksum.
 		'''
@@ -264,32 +264,32 @@ class ModelGpsReceiver(object):
 		''' Generate an NMEA GPGGA sentence.
 		'''
 		data = ''
-		
+
 		data += self.__nmea_time() + ','
-		
+
 		data += self.__nmea_lat_lon() + ','
-		
+
 		data += fix_types[self.fix] + ',' + ('%2d' % self.num_sats) + ','
-		
+
 		if self.hdop is not None:
 			data += ('%.1f' % self.hdop)
 		data += ','
-		
+
 		if self.altitude is not None:
 			data += (self.__vertical_spec % self.altitude)
 		data += ',M,'
-		
+
 		if self.geoid_sep is not None:
 			data += (self.__vertical_spec % self.geoid_sep)
 		data += ',M,'
-		
+
 		if self.last_dgps is not None:
 			data += (self.__time_spec % self.last_dgps)
 		data += ','
-		
+
 		if self.dgps_station is not None:
 			data += ('%04d' % self.dgps_station)
-		
+
 		return [self.__format_sentence('GPGGA,' + data)]
 
 	def __gprmc(self):
@@ -298,7 +298,7 @@ class ModelGpsReceiver(object):
 		data = ''
 
 		data += self.__nmea_time() + ','
-		
+
 		data += self.__validity + ','
 
 		data += self.__nmea_lat_lon() + ','
@@ -306,7 +306,7 @@ class ModelGpsReceiver(object):
 		if self.kph is not None:
 			data += (self.__speed_spec % self.__knots)
 		data += ','
-		
+
 		if self.heading is not None:
 			data += (self.__angle_spec % self.heading)
 		data += ','
@@ -330,7 +330,7 @@ class ModelGpsReceiver(object):
 		''' Generate an NMEA GPGSA sentence.
 		'''
 		data = (ModelGpsReceiver.__GPS_MANUAL_MODE if self.manual_2d else ModelGpsReceiver.__GPS_AUTOMATIC_MODE) + ','
-		
+
 		data += self.__mode + ','
 
 		if self.num_sats >= ModelGpsReceiver.__GPGSA_SV_LIMIT:
@@ -370,7 +370,7 @@ class ModelGpsReceiver(object):
 			data += ('%d' % len(messages)) + ','
 			data += ('%d' % (i + 1)) + ','
 			data += ('%d' % self.num_sats) + ','
-			
+
 			# Iterate through each satellite in the block
 			for j in range(ModelGpsReceiver.__GPGSV_SV_LIMIT):
 				if prn_i < self.num_sats:
@@ -386,17 +386,17 @@ class ModelGpsReceiver(object):
 				# Final satellite in block does not have any fields after it so don't add a ','
 				if j != ModelGpsReceiver.__GPGSV_SV_LIMIT - 1:
 					data += ','
-			
+
 			# Generate the GPGSV sentence for this block
 			messages[i] = self.__format_sentence('GPGSV,' + data)
-		
+
 		return messages
 
 	def __gpvtg(self):
 		''' Generate an NMEA GPVTG sentence.
 		'''
 		data = ''
-		
+
 		if self.heading is not None:
 			data += (self.__angle_spec % self.heading)
 		data += ',T,'
@@ -442,7 +442,7 @@ class ModelGpsReceiver(object):
 			return []
 
 		data += self.__nmea_time() + ','
-		
+
 		ts = self.date_time.utctimetuple()
 		data += ('%02d' % ts.tm_mday) + ',' + ('%02d' % ts.tm_mon) + ',' +  ('%04d' % (ts.tm_year % 10000)) + ','
 
@@ -468,7 +468,7 @@ class ModelGpsReceiver(object):
 		self.__gen_nmea['GPVTG'] = self.__gpvtg
 		self.__gen_nmea['GPGLL'] = self.__gpgll
 		self.__gen_nmea['GPZDA'] = self.__gpzda
-		
+
 		# Record parameters
 		self.solution = solution
 		self._fix = fix
@@ -501,100 +501,100 @@ class ModelGpsReceiver(object):
 		self.satellites = []
 		for prn in range(1, ModelGpsReceiver.__GPS_TOTAL_SV_LIMIT + 1):
 			self.satellites.append(ModelSatellite(prn, azimuth=random.random() * 360, snr=30 + random.random() * 10))
-		
+
 		# Smart setter will configure satellites as appropriate
 		self.num_sats = num_sats
 
 		self.__recalculate()
-		
+
 	@property
 	def lat(self):
 		return self._lat
-	
+
 	@lat.setter
 	def lat(self, new_lat):
 		self._lat = new_lat
-		
+
 	@property
 	def lon(self):
 		return self._lon
-	
+
 	@lon.setter
 	def lon(self, new_lon):
 		self._lon = new_lon
-		
+
 	@property
 	def altitude(self):
 		return self._altitude
-	
+
 	@altitude.setter
 	def altitude(self, new_altitude):
 		self._altitude = new_altitude
-		
+
 	@property
 	def geoid_sep(self):
 		return self._geoid_sep
-		
+
 	@geoid_sep.setter
 	def geoid_sep(self, new_geoid_sep):
 		self._geoid_sep = new_geoid_sep
-		
+
 	@property
 	def hdop(self):
 		return self._hdop
-		
+
 	@hdop.setter
 	def hdop(self, new_hdop):
 		self._hdop = new_hdop
-		
+
 	@property
 	def vdop(self):
 		return self._vdop
-		
+
 	@vdop.setter
 	def vdop(self, new_vdop):
 		self._vdop = new_vdop
-		
+
 	@property
 	def pdop(self):
 		return self._pdop
-	
+
 	@pdop.setter
 	def pdop(self, new_pdop):
 		self._pdop = new_pdop
-		
+
 	@property
 	def kph(self):
 		return self._kph
-		
+
 	@kph.setter
 	def kph(self, new_kph):
 		self._kph = new_kph
-		
+
 	@property
 	def heading(self):
 		return self._heading
-		
+
 	@heading.setter
 	def heading(self, new_heading):
 		self._heading = new_heading
-		
+
 	@property
 	def mag_heading(self):
 		return self._mag_heading
-		
+
 	@mag_heading.setter
 	def mag_heading(self, new_mag_heading):
 		self._mag_heading = new_mag_heading
-		
+
 	@property
 	def mag_var(self):
 		return self._mag_var
-		
+
 	@mag_var.setter
 	def mag_var(self, new_mag_var):
 		self._mag_var = new_mag_var
-		
+
 	@property
 	def num_sats(self):
 		return len(self.__visible_prns)
@@ -705,7 +705,7 @@ class GpsSim(object):
 
 		if self.gps.date_time is not None:
 			self.gps.date_time += datetime.timedelta(seconds=duration)
-			
+
 			perturbation = math.sin(self.gps.date_time.second * math.pi / 30) / 2
 			for satellite in self.gps.satellites:
 				satellite.snr += perturbation
@@ -714,7 +714,7 @@ class GpsSim(object):
 
 		if self.heading_variation and self.gps.heading is not None:
 			self.gps.heading += (random.random() - 0.5) * self.heading_variation
-		
+
 		self.gps.move(duration)
 
 	def __action(self):
@@ -751,7 +751,7 @@ class GpsSim(object):
 		with self.lock:
 			if self.comport.port is not None:
 				self.comport.close()
-		
+
 	def serve(self, comport, blocking=True):
 		''' Start serving GPS simulator on the specified COM port (and stdout)
 		    and optionally blocks until an exception (e.g KeyboardInterrupt).
@@ -769,7 +769,7 @@ class GpsSim(object):
 					self.__worker.join(60)
 			except:
 				self.kill()
-		
+
 	def kill(self):
 		''' Issue the kill command to the GPS simulator thread and wait for it to die.
 		'''
