@@ -37,7 +37,7 @@ except:
 
 # Scan available serial ports
 ports = ['']
-for i in range(256):
+for i in xrange(256):
 	try:
 		port = serial.Serial(str(i))
 		ports.append(port.portstr)

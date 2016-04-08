@@ -334,7 +334,7 @@ class ModelGpsReceiver(object):
 		data += self.__mode + ','
 
 		if self.num_sats >= ModelGpsReceiver.__GPGSA_SV_LIMIT:
-			for i in range(ModelGpsReceiver.__GPGSA_SV_LIMIT):
+			for i in xrange(ModelGpsReceiver.__GPGSA_SV_LIMIT):
 				data += ('%d' % self.__visible_prns[i]) + ','
 		else:
 			for prn in self.__visible_prns:
@@ -365,14 +365,14 @@ class ModelGpsReceiver(object):
 		prn_i = 0
 
 		# Iterate through each block of satellites
-		for i in range(len(messages)):
+		for i in xrange(len(messages)):
 			data = ''
 			data += ('%d' % len(messages)) + ','
 			data += ('%d' % (i + 1)) + ','
 			data += ('%d' % self.num_sats) + ','
 
 			# Iterate through each satellite in the block
-			for j in range(ModelGpsReceiver.__GPGSV_SV_LIMIT):
+			for j in xrange(ModelGpsReceiver.__GPGSV_SV_LIMIT):
 				if prn_i < self.num_sats:
 					satellite = self.satellites[self.__visible_prns[prn_i] - 1]
 					data += ('%d' % satellite.prn) + ','
@@ -499,7 +499,7 @@ class ModelGpsReceiver(object):
 
 		# Create all dummy satellites with random conditions
 		self.satellites = []
-		for prn in range(1, ModelGpsReceiver.__GPS_TOTAL_SV_LIMIT + 1):
+		for prn in xrange(1, ModelGpsReceiver.__GPS_TOTAL_SV_LIMIT + 1):
 			self.satellites.append(ModelSatellite(prn, azimuth=random.random() * 360, snr=30 + random.random() * 10))
 
 		# Smart setter will configure satellites as appropriate
@@ -604,9 +604,9 @@ class ModelGpsReceiver(object):
 		assert value <= ModelGpsReceiver.__GPS_TOTAL_SV_LIMIT
 		# Randomly make the requested number visible, make the rest invisible (negative elevation)
 		random.shuffle(self.satellites)
-		for i in range(value):
+		for i in xrange(value):
 			self.satellites[i].elevation=random.random() * 90
-		for i in range(value, len(self.satellites)):
+		for i in xrange(value, len(self.satellites)):
 			self.satellites[i].elevation = -90
 		self.satellites.sort(key=operator.attrgetter('prn', ))
 		self.__recalculate()
