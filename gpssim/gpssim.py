@@ -133,10 +133,7 @@ class ModelGpsReceiver(object):
 				satellite.azimuth += 180
 
 			# Fix azimuth wrap around
-			if satellite.azimuth >= 360:
-				satellite.azimuth -= 360
-			elif satellite.azimuth < 0:
-				satellite.azimuth += 360
+			satellite.azimuth %= 360
 
 			# Fix SNR going over or under limits
 			if satellite.snr < 0:
@@ -210,17 +207,11 @@ class ModelGpsReceiver(object):
 
 		# Fix heading wrap around
 		if self.heading is not None:
-			if self.heading >= 360:
-				self.heading -= 360
-			elif self.heading < 0:
-				self.heading += 360
+			self.heading %= 360
 
 		# Fix magnetic heading wrap around
 		if self.mag_heading is not None:
-			if self.mag_heading >= 360:
-				self.mag_heading -= 360
-			elif self.mag_heading < 0:
-				self.mag_heading += 360
+			self.mag_heading %= 360
 
 		# Generate string specifications for various fields
 		self.__vertical_spec = '%%.%df' % self.vertical_dp
