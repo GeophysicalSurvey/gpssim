@@ -269,7 +269,7 @@ class ModelGpsReceiver(object):
 
 		data += self.__nmea_lat_lon() + ','
 
-		data += fix_types[self.fix] + ',' + ('%2d' % self.num_sats) + ','
+		data += fix_types[self.fix] + ',' + ('%02d' % self.num_sats) + ','
 
 		if self.hdop is not None:
 			data += ('%.1f' % self.hdop)
