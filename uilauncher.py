@@ -39,7 +39,7 @@ except:
 ports = ['']
 for i in range(256):
 	try:
-		port = serial.Serial(i)
+		port = serial.Serial(str(i))
 		ports.append(port.portstr)
 		port.close()
 	except serial.SerialException:
