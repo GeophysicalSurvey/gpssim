@@ -152,7 +152,7 @@ class ModelGpsReceiver(object):
 		# For real fixes correct for number of satellites
 		if self.fix != 'GPS_DEAD_RECKONING_FIX' and self.fix != 'GPS_MANUAL_INPUT_FIX' and self.fix != 'GPS_SIMULATED_FIX':
 			# Cannot have GPS time without satellites
-			if self.num_sats == 0:
+			if self.num_sats == 0 and not self.has_rtc:
 				self.date_time = None
 
 			# Cannot have a fix if too few satellites
@@ -456,7 +456,7 @@ class ModelGpsReceiver(object):
 
 		return [self.__format_sentence('GPZDA,' + data)]
 
-	def __init__(self, output=('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV', 'GPRMC', 'GPVTG', 'GPZDA'), solution=constants.GPS_AUTONOMOUS_SOLUTION, fix=constants.GPS_SPS_FIX, manual_2d=False, horizontal_dp=3, vertical_dp=1, speed_dp=1, time_dp=3, angle_dp=1, date_time=0, lat=0.0, lon=0.0, altitude=0.0, geoid_sep=0.0, kph=0.0, heading=0.0, mag_heading=None, mag_var=0.0, num_sats=12, hdop=1.0, vdop=1.0, pdop=1.0, last_dgps=None, dgps_station=None):
+	def __init__(self, output=('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV', 'GPRMC', 'GPVTG', 'GPZDA'), solution=constants.GPS_AUTONOMOUS_SOLUTION, fix=constants.GPS_SPS_FIX, manual_2d=False, horizontal_dp=3, vertical_dp=1, speed_dp=1, time_dp=3, angle_dp=1, date_time=0, lat=0.0, lon=0.0, altitude=0.0, geoid_sep=0.0, kph=0.0, heading=0.0, mag_heading=None, mag_var=0.0, num_sats=12, hdop=1.0, vdop=1.0, pdop=1.0, last_dgps=None, dgps_station=None, has_rtc=False):
 		''' Initialise the GPS instance with initial configuration.
 		'''
 		# Populate the sentence generation table
@@ -496,6 +496,7 @@ class ModelGpsReceiver(object):
 		self.last_dgps = last_dgps
 		self.dgps_station = dgps_station
 		self.output = output
+		self.has_rtc = has_rtc
 
 		# Create all dummy satellites with random conditions
 		self.satellites = []
