@@ -13,6 +13,6 @@ setup(
     install_requires=["pySerial>=2.5-rc2", "geographiclib"],
     entry_points={'gui_scripts': ['gpssim = uilauncher:main']},
     test_suite="tests",
-	py_modules=["uilauncher"],
+    py_modules=["uilauncher"],
     packages=["gpssim"]
 )
