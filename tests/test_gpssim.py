@@ -7,7 +7,7 @@ import unittest
 import traceback
 import datetime
 import random
-from gpssim import GpsSim, constants, ModelGpsReceiver, TimeZone
+from gpssim import GpsSim, constants, ModelGpsReceiver, ModelGlonassReceiver, TimeZone
 
 LAT = 0.0
 LON = 0.0
@@ -190,6 +190,157 @@ class TestModelGpsReceiver(unittest.TestCase):
         self.assertEqual(self.gps.get_output(), expected_invalid_data)
         self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.get_output(), expected_valid_data)
+
+
+class TestModelGpsReceiver(unittest.TestCase):
+
+    def setUp(self):
+        # Necessary because some of the initial data eg PRNs is generated at
+        # random on initialisation
+        random.seed(0)
+        dt = datetime.datetime(2014, 11, 27, 9, 20, 53, 555000)
+        print dt.isoformat()
+        self.glonass = ModelGlonassReceiver(lat=LAT,
+                                            lon=LON,
+                                            altitude=ALTITUDE,
+                                            geoid_sep=GEOID_SEP,
+                                            hdop=HDOP,
+                                            vdop=VDOP,
+                                            pdop=PDOP,
+                                            kph=KPH,
+                                            heading=HEADING,
+                                            mag_heading=MAG_HEADING,
+                                            mag_var=MAG_VAR,
+                                            date_time=dt)
+
+    def tearDown(self):
+        pass
+
+    def test_lat_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
+        self.assertEqual(self.glonass.lat, LAT)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.lat, LAT)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.lat, LAT)
+
+    def test_lon_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
+        self.assertEqual(self.glonass.lon, LON)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.lon, LON)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.lon, LON)
+
+    def test_altitude_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
+        self.assertEqual(self.glonass.altitude, ALTITUDE)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.altitude, ALTITUDE)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.altitude, ALTITUDE)
+
+    def test_geoid_sep_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
+        self.assertEqual(self.glonass.geoid_sep, GEOID_SEP)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.geoid_sep, GEOID_SEP)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.geoid_sep, GEOID_SEP)
+
+    def test_hdop_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
+        self.assertEqual(self.glonass.hdop, HDOP)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.hdop, HDOP)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.hdop, HDOP)
+
+    def test_vdop_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
+        self.assertEqual(self.glonass.vdop, VDOP)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.vdop, VDOP)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.vdop, VDOP)
+
+    def test_pdop_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
+        self.assertEqual(self.glonass.pdop, PDOP)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.pdop, PDOP)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.pdop, PDOP)
+
+    def test_kph_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
+        self.assertEqual(self.glonass.kph, KPH)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.kph, KPH)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.kph, KPH)
+
+    def test_heading_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
+        self.assertEqual(self.glonass.heading, HEADING)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.heading, HEADING)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.heading, HEADING)
+
+    def test_mag_heading_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
+        self.assertEqual(self.glonass.mag_heading, MAG_HEADING)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.mag_heading, MAG_HEADING)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.mag_heading, MAG_HEADING)
+
+    def test_mag_var_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
+        self.assertEqual(self.glonass.mag_var, MAG_VAR)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.mag_var, MAG_VAR)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.mag_var, MAG_VAR)
+
+    def test_solution_invalid_fix_results_in_invalid_solution(self):
+        self.assertEqual(self.glonass.solution, constants.AUTONOMOUS_SOLUTION)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.solution, constants.INVALID_SOLUTION)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.solution, constants.AUTONOMOUS_SOLUTION)
+
+    def test_vdop_is_same_value_when_altitude_is_None(self):
+        self.assertEqual(self.glonass.vdop, VDOP)
+        self.glonass.altitude = None
+        self.assertEqual(self.glonass.vdop, VDOP)
+        self.glonass.altitude = ALTITUDE
+        self.assertEqual(self.glonass.vdop, VDOP)
+
+    def test_pdop_is_same_value_when_altitude_is_None(self):
+        self.assertEqual(self.glonass.pdop, PDOP)
+        self.glonass.altitude = None
+        self.assertEqual(self.glonass.pdop, PDOP)
+        self.glonass.altitude = ALTITUDE
+        self.assertEqual(self.glonass.pdop, PDOP)
+
+    def test_get_output_returns_info_when_fix_is_valid(self):
+        expected_valid_data = [
+            '$GLGGA,092053.555,0000.000,N,00000.000,E,1,12,1.0,0.0,M,0.0,M,,*7A',
+            '$GLGLL,0000.000,N,00000.000,E,092053.555,A,A*4D',
+            '$GLGSA,A,3,1,3,4,7,9,10,13,20,21,22,25,29,1.0,1.0,1.0*19',
+            '$GLGSV,3,1,12,1,82,303,37,3,43,184,34,4,19,282,33,7,71,101,37*64',
+            '$GLGSV,3,2,12,9,71,327,39,10,21,291,39,13,56,169,31,20,65,296,36*52',
+            '$GLGSV,3,3,12,21,55,0,34,22,7,312,32,25,76,85,39,29,10,39,35*53',
+            '$GLRMC,092053.555,A,0000.000,N,00000.000,E,0.0,0.0,271114,0.0,E,A*11',
+            '$GLVTG,0.0,T,,M,0.0,N,0.0,K,A*11',
+            '$GLZDA,092053.555,27,11,2014,,*40']
+
+        expected_invalid_data = [
+            '$GLGGA,092053.555,0000.000,N,00000.000,E,0,12,1.0,0.0,M,0.0,M,,*7B',
+            '$GLGLL,0000.000,N,00000.000,E,092053.555,V,N*55',
+            '$GLGSA,A,1,1,3,4,7,9,10,13,20,21,22,25,29,1.0,1.0,1.0*1B',
+            '$GLGSV,3,1,12,1,82,303,37,3,43,184,34,4,19,282,33,7,71,101,37*64',
+            '$GLGSV,3,2,12,9,71,327,39,10,21,291,39,13,56,169,31,20,65,296,36*52',
+            '$GLGSV,3,3,12,21,55,0,34,22,7,312,32,25,76,85,39,29,10,39,35*53',
+            '$GLRMC,092053.555,V,0000.000,N,00000.000,E,0.0,0.0,271114,0.0,E,N*09',
+            '$GLVTG,0.0,T,,M,0.0,N,0.0,K,N*1E',
+            '$GLZDA,092053.555,27,11,2014,,*40']
+        self.assertEqual(self.glonass.get_output(), expected_valid_data)
+        self.glonass.fix = constants.INVALID_FIX
+        self.assertEqual(self.glonass.get_output(), expected_invalid_data)
+        self.glonass.fix = constants.SPS_FIX
+        self.assertEqual(self.glonass.get_output(), expected_valid_data)
 
 
 if __name__ == "__main__":

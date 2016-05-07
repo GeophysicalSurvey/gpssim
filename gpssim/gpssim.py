@@ -109,7 +109,7 @@ class ModelGnssReceiver(object):
     The model has the capability to project forward 2-D coordinates based on
     a speed and heading over a given time.
     '''
-    __GPS_TOTAL_SV_LIMIT = 32  # Maximum possible GPS constellation size
+
     __GSA_SV_LIMIT = 12  # Maximum number of satellites per GSA message
     __GSV_SV_LIMIT = 4  # Maximum number of satellites per GSV message
 
@@ -174,16 +174,16 @@ class ModelGnssReceiver(object):
 
         # Force blank fields if there is no fix
         if self.fix == constants.INVALID_FIX:
-            self.__validity = ModelGnssReceiver.__INVALID_FIX
-            self.__mode = ModelGnssReceiver.__SOLUTION_NA
+            self.__validity = self.__INVALID_FIX
+            self.__mode = self.__SOLUTION_NA
         else:
-            self.__validity = ModelGnssReceiver.__VALID_FIX
-            self.__mode = ModelGnssReceiver.__SOLUTION_3D
+            self.__validity = self.__VALID_FIX
+            self.__mode = self.__SOLUTION_3D
 
         # Force blanks for 2-D fix
         if self.altitude is None:
-            if self.__mode != ModelGnssReceiver.__SOLUTION_NA:
-                self.__mode = ModelGnssReceiver.__SOLUTION_2D
+            if self.__mode != self.__SOLUTION_NA:
+                self.__mode = self.__SOLUTION_2D
 
         # Convert decimal latitude to NMEA friendly form
         if self.lat is not None:
@@ -212,7 +212,7 @@ class ModelGnssReceiver(object):
 
         # Convert metric speed to imperial form
         if self.kph is not None:
-            self.__knots = self.kph / ModelGnssReceiver.__KNOTS_PER_KPH
+            self.__knots = self.kph / self.__KNOTS_PER_KPH
 
         # Fix heading wrap around
         if self.heading is not None:
@@ -273,8 +273,8 @@ class ModelGnssReceiver(object):
         else:
             return ''
 
-    def __gpgga(self):
-        ''' Generate an NMEA GPGGA sentence.
+    def __gga(self):
+        ''' Generate an NMEA GGA sentence.
         '''
         data = ''
 
@@ -303,10 +303,10 @@ class ModelGnssReceiver(object):
         if self.dgps_station is not None:
             data += ('%04d' % self.dgps_station)
 
-        return [self.__format_sentence('GPGGA,' + data)]
+        return [self.__format_sentence(self._prefix + 'GGA,' + data)]
 
-    def __gprmc(self):
-        ''' Generate an NMEA GPRMC sentence.
+    def __rmc(self):
+        ''' Generate an NMEA RMC sentence.
         '''
         data = ''
 
@@ -339,22 +339,22 @@ class ModelGnssReceiver(object):
         if self.solution is not None:
             data += ',' + solution_modes[self.solution]
 
-        return [self.__format_sentence('GPRMC,' + data)]
+        return [self.__format_sentence(self._prefix + 'RMC,' + data)]
 
-    def __gpgsa(self):
-        ''' Generate an NMEA GPGSA sentence.
+    def __gsa(self):
+        ''' Generate an NMEA GSA sentence.
         '''
-        data = (ModelGnssReceiver.__MANUAL_MODE if self.manual_2d else ModelGnssReceiver.__AUTOMATIC_MODE) + ','
+        data = (self.__MANUAL_MODE if self.manual_2d else self.__AUTOMATIC_MODE) + ','
 
         data += self.__mode + ','
 
-        if self.num_sats >= ModelGnssReceiver.__GSA_SV_LIMIT:
-            for i in xrange(ModelGnssReceiver.__GSA_SV_LIMIT):
+        if self.num_sats >= self.__GSA_SV_LIMIT:
+            for i in xrange(self.__GSA_SV_LIMIT):
                 data += ('%d' % self.__visible_prns[i]) + ','
         else:
             for prn in self.__visible_prns:
                 data += ('%d' % prn) + ','
-            data += ',' * (ModelGnssReceiver.__GSA_SV_LIMIT - self.num_sats)
+            data += ',' * (self.__GSA_SV_LIMIT - self.num_sats)
 
         if self.pdop is not None:
             data += ('%.1f' % self.pdop)
@@ -367,17 +367,17 @@ class ModelGnssReceiver(object):
         if self.vdop is not None:
             data += ('%.1f' % self.vdop)
 
-        return [self.__format_sentence('GPGSA,' + data)]
+        return [self.__format_sentence(self._prefix + 'GSA,' + data)]
 
-    def __gpgsv(self):
-        ''' Generate a sequence of NMEA GPGSV sentences.
+    def __gsv(self):
+        ''' Generate a sequence of NMEA GSV sentences.
         '''
         if self.num_sats == 0:
             return []
 
-        # Work out how many GPGSV sentences are required to show all satellites
-        messages = [''] * ((self.num_sats + ModelGnssReceiver.__GSV_SV_LIMIT -
-                            1) / ModelGnssReceiver.__GSV_SV_LIMIT)
+        # Work out how many GSV sentences are required to show all satellites
+        messages = [''] * ((self.num_sats + self.__GSV_SV_LIMIT -
+                            1) / self.__GSV_SV_LIMIT)
         prn_i = 0
 
         # Iterate through each block of satellites
@@ -388,7 +388,7 @@ class ModelGnssReceiver(object):
             data += ('%d' % self.num_sats) + ','
 
             # Iterate through each satellite in the block
-            for j in xrange(ModelGnssReceiver.__GSV_SV_LIMIT):
+            for j in xrange(self.__GSV_SV_LIMIT):
                 if prn_i < self.num_sats:
                     satellite = self.satellites[self.__visible_prns[prn_i] - 1]
                     data += ('%d' % satellite.prn) + ','
@@ -401,16 +401,16 @@ class ModelGnssReceiver(object):
 
                 # Final satellite in block does not have any fields after it so
                 # don't add a ','
-                if j != ModelGnssReceiver.__GSV_SV_LIMIT - 1:
+                if j != self.__GSV_SV_LIMIT - 1:
                     data += ','
 
-            # Generate the GPGSV sentence for this block
-            messages[i] = self.__format_sentence('GPGSV,' + data)
+            # Generate the GSV sentence for this block
+            messages[i] = self.__format_sentence(self._prefix + 'GSV,' + data)
 
         return messages
 
-    def __gpvtg(self):
-        ''' Generate an NMEA GPVTG sentence.
+    def __vtg(self):
+        ''' Generate an NMEA VTG sentence.
         '''
         data = ''
 
@@ -431,10 +431,10 @@ class ModelGnssReceiver(object):
         if self.solution is not None:
             data += ',' + solution_modes[self.solution]
 
-        return [self.__format_sentence('GPVTG,' + data)]
+        return [self.__format_sentence(self._prefix + 'VTG,' + data)]
 
-    def __gpgll(self):
-        ''' Generate an NMEA GPGLL sentence.
+    def __gll(self):
+        ''' Generate an NMEA GLL sentence.
         '''
         data = ''
 
@@ -447,10 +447,10 @@ class ModelGnssReceiver(object):
         if self.solution is not None:
             data += ',' + solution_modes[self.solution]
 
-        return [self.__format_sentence('GPGLL,' + data)]
+        return [self.__format_sentence(self._prefix + 'GLL,' + data)]
 
-    def __gpzda(self):
-        ''' Generate an NMEA GPZDA sentence.
+    def __zda(self):
+        ''' Generate an NMEA ZDA sentence.
         '''
         data = ''
 
@@ -471,20 +471,26 @@ class ModelGnssReceiver(object):
         else:
             data += ','
 
-        return [self.__format_sentence('GPZDA,' + data)]
+        return [self.__format_sentence(self._prefix + 'ZDA,' + data)]
 
-    def __init__(self, output=('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV', 'GPRMC', 'GPVTG', 'GPZDA'), solution=constants.AUTONOMOUS_SOLUTION, fix=constants.SPS_FIX, manual_2d=False, horizontal_dp=3, vertical_dp=1, speed_dp=1, time_dp=3, angle_dp=1, date_time=0, lat=0.0, lon=0.0, altitude=0.0, geoid_sep=0.0, kph=0.0, heading=0.0, mag_heading=None, mag_var=0.0, num_sats=12, hdop=1.0, vdop=1.0, pdop=1.0, last_dgps=None, dgps_station=None, has_rtc=False):
+    def __init__(self, output=('GGA', 'GLL', 'GSA', 'GSV', 'RMC', 'VTG', 'ZDA'), solution=constants.AUTONOMOUS_SOLUTION, fix=constants.SPS_FIX, manual_2d=False, horizontal_dp=3, vertical_dp=1, speed_dp=1, time_dp=3, angle_dp=1, date_time=0, lat=0.0, lon=0.0, altitude=0.0, geoid_sep=0.0, kph=0.0, heading=0.0, mag_heading=None, mag_var=0.0, num_sats=12, hdop=1.0, vdop=1.0, pdop=1.0, last_dgps=None, dgps_station=None, has_rtc=False):
         ''' Initialise the GNSS instance with initial configuration.
         '''
         # Populate the sentence generation table
+
+        self._prefix = 'GN'
+        self._min_sv_number = 1  # Minimum satellite prn
+        self._max_sv_number = 32  # Maximum satellite prn
+        self._total_sv_limit = 32  # Maximum possible satellite constellation size
+
         self.__gen_nmea = {}
-        self.__gen_nmea['GPGGA'] = self.__gpgga
-        self.__gen_nmea['GPGSA'] = self.__gpgsa
-        self.__gen_nmea['GPGSV'] = self.__gpgsv
-        self.__gen_nmea['GPRMC'] = self.__gprmc
-        self.__gen_nmea['GPVTG'] = self.__gpvtg
-        self.__gen_nmea['GPGLL'] = self.__gpgll
-        self.__gen_nmea['GPZDA'] = self.__gpzda
+        self.__gen_nmea['GGA'] = self.__gga
+        self.__gen_nmea['GSA'] = self.__gsa
+        self.__gen_nmea['GSV'] = self.__gsv
+        self.__gen_nmea['RMC'] = self.__rmc
+        self.__gen_nmea['VTG'] = self.__vtg
+        self.__gen_nmea['GLL'] = self.__gll
+        self.__gen_nmea['ZDA'] = self.__zda
 
         # Record parameters
         self.solution = solution
@@ -517,7 +523,7 @@ class ModelGnssReceiver(object):
 
         # Create all dummy satellites with random conditions
         self.satellites = []
-        for prn in xrange(1, ModelGnssReceiver.__GPS_TOTAL_SV_LIMIT + 1):
+        for prn in xrange(self._min_sv_number, self._max_sv_number + 1):
             self.satellites.append(ModelSatellite(
                 prn, azimuth=random.random() * 360, snr=30 + random.random() * 10))
 
@@ -620,7 +626,7 @@ class ModelGnssReceiver(object):
 
     @num_sats.setter
     def num_sats(self, value):
-        assert value <= ModelGnssReceiver.__GPS_TOTAL_SV_LIMIT
+        assert value <= self._total_sv_limit
         # Randomly make the requested number visible, make the rest invisible
         # (negative elevation)
         random.shuffle(self.satellites)
@@ -695,7 +701,23 @@ class ModelGnssReceiver(object):
 
 
 class ModelGpsReceiver(ModelGnssReceiver):
-    pass
+
+    def __init__(self, *args, **kwargs):
+        super(ModelGpsReceiver, self).__init__(*args, **kwargs)
+        self._min_sv_number = 1  # Minimum satellite prn
+        self._max_sv_number = 32  # Maximum satellite prn
+        self._total_sv_limit = 32  # Maximum possible satellite constellation size
+        self._prefix = 'GP'
+
+
+class ModelGlonassReceiver(ModelGnssReceiver):
+
+    def __init__(self, *args, **kwargs):
+        super(ModelGlonassReceiver, self).__init__(*args, **kwargs)
+        self._min_sv_number = 65  # Minimum satellite prn
+        self._max_sv_number = 96  # Maximum satellite prn
+        self._total_sv_limit = 24  # Maximum possible satellite constellation size
+        self._prefix = 'GL'
 
 
 class GpsSim(object):
@@ -840,13 +862,13 @@ if __name__ == '__main__':
 
     # How to output specific sentence types from the model
     model = ModelGpsReceiver()
-    model.output = ('GPGGA', 'GPRMC')
+    model.output = ('GGA', 'RMC')
     sentences = model.get_output()
 
     # Modify settings under lock protection
     with sim.lock:
-        sim.gps.output = ('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV',
-                          'GPRMC', 'GPVTG', 'GPZDA')  # can re-order or drop some
+        sim.gps.output = ('GGA', 'GLL', 'GSA', 'GSV',
+                          'RMC', 'VTG', 'ZDA')  # can re-order or drop some
         sim.gps.num_sats = 14
         sim.gps.lat = 1
         sim.gps.lon = 3
