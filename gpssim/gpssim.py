@@ -679,8 +679,6 @@ class ModelGpsReceiver(object):
         out = Geodesic.WGS84.Inverse(self.lat, self.lon, other_lat, other_lon)
         return out['s12'] / 1000.0
 
-        return '$' + data + '*' + self.__checksum(data)
-
     def get_output(self):
         ''' Returns a list of NMEA sentences (not new line terminated) that the GPS instance was configured to output.
         '''
