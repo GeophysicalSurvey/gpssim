@@ -1,11 +1,11 @@
 ''' GPS Simulation Library
 
 The simulation library has two main classes:
-ModelGpsReceiver - model and view of the GPS receiver data
+ModelGnssReceiver - model and view of the GNSS receiver data
 GpsSim - simulation server that runs the model
 
 Typical usage would instantiate a new GpsSim instance,
-providing a custom ModelGpsReceiver instance as an input argument.
+providing a custom ModelGnssReceiver instance as an input argument.
 See __main__ for a basic example.
 
 Copyright (c) 2013 Wei Li Jiang
@@ -50,23 +50,23 @@ except:
     raise
 
 fix_types = collections.OrderedDict()
-fix_types[constants.GPS_INVALID_FIX] = '0'
-fix_types[constants.GPS_SPS_FIX] = '1'
-fix_types['GPS_DGPS_FIX'] = '2'
-fix_types['GPS_PPS_FIX'] = '3'
-fix_types['GPS_RTK_FIX'] = '4'
-fix_types['GPS_FLOAT_RTK_FIX'] = '5'
-fix_types['GPS_DEAD_RECKONING_FIX'] = '6'
-fix_types['GPS_MANUAL_INPUT_FIX'] = '7'
-fix_types['GPS_SIMULATED_FIX'] = '8'
+fix_types[constants.INVALID_FIX] = '0'
+fix_types[constants.SPS_FIX] = '1'
+fix_types['DGPS_FIX'] = '2'
+fix_types['PPS_FIX'] = '3'
+fix_types['RTK_FIX'] = '4'
+fix_types['FLOAT_RTK_FIX'] = '5'
+fix_types['DEAD_RECKONING_FIX'] = '6'
+fix_types['MANUAL_INPUT_FIX'] = '7'
+fix_types['SIMULATED_FIX'] = '8'
 
 solution_modes = collections.OrderedDict()
 solution_modes[''] = ''
-solution_modes[constants.GPS_AUTONOMOUS_SOLUTION] = 'A'
-solution_modes['GPS_DIFFERENTIAL_SOLUTION'] = 'D'
-solution_modes['GPS_ESTIMATED_SOLUTION'] = 'E'
-solution_modes[constants.GPS_INVALID_SOLUTION] = 'N'
-solution_modes['GPS_SIMULATOR_SOLUTION'] = 'S'
+solution_modes[constants.AUTONOMOUS_SOLUTION] = 'A'
+solution_modes['DIFFERENTIAL_SOLUTION'] = 'D'
+solution_modes['ESTIMATED_SOLUTION'] = 'E'
+solution_modes[constants.INVALID_SOLUTION] = 'N'
+solution_modes['SIMULATOR_SOLUTION'] = 'S'
 
 
 class TimeZone(datetime.tzinfo):
@@ -93,7 +93,7 @@ tz_local = TimeZone(time.timezone)
 
 
 class ModelSatellite(object):
-    ''' Model class for a GPS satellite
+    ''' Model class for a GNSS satellite
     '''
 
     def __init__(self, prn, elevation=0, azimuth=0, snr=40):
@@ -103,31 +103,31 @@ class ModelSatellite(object):
         self.snr = snr
 
 
-class ModelGpsReceiver(object):
-    ''' Model class for a GPS receiver
-    Takes in a model GPS parameters and outputs the requested NMEA sentences.
+class ModelGnssReceiver(object):
+    ''' Model class for a GNSS receiver
+    Takes in a model GNSS parameters and outputs the requested NMEA sentences.
     The model has the capability to project forward 2-D coordinates based on
     a speed and heading over a given time.
     '''
     __GPS_TOTAL_SV_LIMIT = 32  # Maximum possible GPS constellation size
-    __GPGSA_SV_LIMIT = 12  # Maximum number of satellites per GPGSA message
-    __GPGSV_SV_LIMIT = 4  # Maximum number of satellites per GPGSV message
+    __GSA_SV_LIMIT = 12  # Maximum number of satellites per GSA message
+    __GSV_SV_LIMIT = 4  # Maximum number of satellites per GSV message
 
-    # Constants for GPRMC and GPGLL validity
-    __GPS_VALID_FIX = 'A'
-    __GPS_INVALID_FIX = 'V'
+    # Constants for RMC and GLL validity
+    __VALID_FIX = 'A'
+    __INVALID_FIX = 'V'
 
     # Constants for the NMEA 2.3 specified 'mode'
-    __GPS_AUTOMATIC_MODE = 'A'
-    __GPS_MANUAL_MODE = 'M'
-    __GPS_SOLUTION_NA = '1'
-    __GPS_SOLUTION_2D = '2'
-    __GPS_SOLUTION_3D = '3'
+    __AUTOMATIC_MODE = 'A'
+    __MANUAL_MODE = 'M'
+    __SOLUTION_NA = '1'
+    __SOLUTION_2D = '2'
+    __SOLUTION_3D = '3'
 
     __KNOTS_PER_KPH = 1.852
 
     def __recalculate(self):
-        ''' Recalculate and fix internal state data for the GPS instance.
+        ''' Recalculate and fix internal state data for the GNSS instance.
         Should be executed after external modification of parameters and prior to doing any calculations.
         '''
         self.__visible_prns = []
@@ -155,12 +155,12 @@ class ModelGpsReceiver(object):
 
         # Optional NMEA 2.3 solution 'mode' has priority if present when
         # determining validity
-        if self.solution == constants.GPS_INVALID_SOLUTION:
-            self.fix = constants.GPS_INVALID_FIX
+        if self.solution == constants.INVALID_SOLUTION:
+            self.fix = constants.INVALID_FIX
 
         # For real fixes correct for number of satellites
-        if self.fix != 'GPS_DEAD_RECKONING_FIX' and self.fix != 'GPS_MANUAL_INPUT_FIX' and self.fix != 'GPS_SIMULATED_FIX':
-            # Cannot have GPS time without satellites
+        if self.fix != 'DEAD_RECKONING_FIX' and self.fix != 'MANUAL_INPUT_FIX' and self.fix != 'SIMULATED_FIX':
+            # Cannot have GNSS time without satellites
             if self.num_sats == 0 and not self.has_rtc:
                 self.date_time = None
 
@@ -170,20 +170,20 @@ class ModelGpsReceiver(object):
                     # 3 satellites sufficient for 2-D fix if forced
                     self.altitude = None
                 else:
-                    self.fix = constants.GPS_INVALID_FIX
+                    self.fix = constants.INVALID_FIX
 
         # Force blank fields if there is no fix
-        if self.fix == constants.GPS_INVALID_FIX:
-            self.__validity = ModelGpsReceiver.__GPS_INVALID_FIX
-            self.__mode = ModelGpsReceiver.__GPS_SOLUTION_NA
+        if self.fix == constants.INVALID_FIX:
+            self.__validity = ModelGnssReceiver.__INVALID_FIX
+            self.__mode = ModelGnssReceiver.__SOLUTION_NA
         else:
-            self.__validity = ModelGpsReceiver.__GPS_VALID_FIX
-            self.__mode = ModelGpsReceiver.__GPS_SOLUTION_3D
+            self.__validity = ModelGnssReceiver.__VALID_FIX
+            self.__mode = ModelGnssReceiver.__SOLUTION_3D
 
         # Force blanks for 2-D fix
         if self.altitude is None:
-            if self.__mode != ModelGpsReceiver.__GPS_SOLUTION_NA:
-                self.__mode = ModelGpsReceiver.__GPS_SOLUTION_2D
+            if self.__mode != ModelGnssReceiver.__SOLUTION_NA:
+                self.__mode = ModelGnssReceiver.__SOLUTION_2D
 
         # Convert decimal latitude to NMEA friendly form
         if self.lat is not None:
@@ -212,7 +212,7 @@ class ModelGpsReceiver(object):
 
         # Convert metric speed to imperial form
         if self.kph is not None:
-            self.__knots = self.kph / ModelGpsReceiver.__KNOTS_PER_KPH
+            self.__knots = self.kph / ModelGnssReceiver.__KNOTS_PER_KPH
 
         # Fix heading wrap around
         if self.heading is not None:
@@ -344,17 +344,17 @@ class ModelGpsReceiver(object):
     def __gpgsa(self):
         ''' Generate an NMEA GPGSA sentence.
         '''
-        data = (ModelGpsReceiver.__GPS_MANUAL_MODE if self.manual_2d else ModelGpsReceiver.__GPS_AUTOMATIC_MODE) + ','
+        data = (ModelGnssReceiver.__MANUAL_MODE if self.manual_2d else ModelGnssReceiver.__AUTOMATIC_MODE) + ','
 
         data += self.__mode + ','
 
-        if self.num_sats >= ModelGpsReceiver.__GPGSA_SV_LIMIT:
-            for i in xrange(ModelGpsReceiver.__GPGSA_SV_LIMIT):
+        if self.num_sats >= ModelGnssReceiver.__GSA_SV_LIMIT:
+            for i in xrange(ModelGnssReceiver.__GSA_SV_LIMIT):
                 data += ('%d' % self.__visible_prns[i]) + ','
         else:
             for prn in self.__visible_prns:
                 data += ('%d' % prn) + ','
-            data += ',' * (ModelGpsReceiver.__GPGSA_SV_LIMIT - self.num_sats)
+            data += ',' * (ModelGnssReceiver.__GSA_SV_LIMIT - self.num_sats)
 
         if self.pdop is not None:
             data += ('%.1f' % self.pdop)
@@ -376,8 +376,8 @@ class ModelGpsReceiver(object):
             return []
 
         # Work out how many GPGSV sentences are required to show all satellites
-        messages = [''] * ((self.num_sats + ModelGpsReceiver.__GPGSV_SV_LIMIT -
-                            1) / ModelGpsReceiver.__GPGSV_SV_LIMIT)
+        messages = [''] * ((self.num_sats + ModelGnssReceiver.__GSV_SV_LIMIT -
+                            1) / ModelGnssReceiver.__GSV_SV_LIMIT)
         prn_i = 0
 
         # Iterate through each block of satellites
@@ -388,7 +388,7 @@ class ModelGpsReceiver(object):
             data += ('%d' % self.num_sats) + ','
 
             # Iterate through each satellite in the block
-            for j in xrange(ModelGpsReceiver.__GPGSV_SV_LIMIT):
+            for j in xrange(ModelGnssReceiver.__GSV_SV_LIMIT):
                 if prn_i < self.num_sats:
                     satellite = self.satellites[self.__visible_prns[prn_i] - 1]
                     data += ('%d' % satellite.prn) + ','
@@ -401,7 +401,7 @@ class ModelGpsReceiver(object):
 
                 # Final satellite in block does not have any fields after it so
                 # don't add a ','
-                if j != ModelGpsReceiver.__GPGSV_SV_LIMIT - 1:
+                if j != ModelGnssReceiver.__GSV_SV_LIMIT - 1:
                     data += ','
 
             # Generate the GPGSV sentence for this block
@@ -473,8 +473,8 @@ class ModelGpsReceiver(object):
 
         return [self.__format_sentence('GPZDA,' + data)]
 
-    def __init__(self, output=('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV', 'GPRMC', 'GPVTG', 'GPZDA'), solution=constants.GPS_AUTONOMOUS_SOLUTION, fix=constants.GPS_SPS_FIX, manual_2d=False, horizontal_dp=3, vertical_dp=1, speed_dp=1, time_dp=3, angle_dp=1, date_time=0, lat=0.0, lon=0.0, altitude=0.0, geoid_sep=0.0, kph=0.0, heading=0.0, mag_heading=None, mag_var=0.0, num_sats=12, hdop=1.0, vdop=1.0, pdop=1.0, last_dgps=None, dgps_station=None, has_rtc=False):
-        ''' Initialise the GPS instance with initial configuration.
+    def __init__(self, output=('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV', 'GPRMC', 'GPVTG', 'GPZDA'), solution=constants.AUTONOMOUS_SOLUTION, fix=constants.SPS_FIX, manual_2d=False, horizontal_dp=3, vertical_dp=1, speed_dp=1, time_dp=3, angle_dp=1, date_time=0, lat=0.0, lon=0.0, altitude=0.0, geoid_sep=0.0, kph=0.0, heading=0.0, mag_heading=None, mag_var=0.0, num_sats=12, hdop=1.0, vdop=1.0, pdop=1.0, last_dgps=None, dgps_station=None, has_rtc=False):
+        ''' Initialise the GNSS instance with initial configuration.
         '''
         # Populate the sentence generation table
         self.__gen_nmea = {}
@@ -517,7 +517,7 @@ class ModelGpsReceiver(object):
 
         # Create all dummy satellites with random conditions
         self.satellites = []
-        for prn in xrange(1, ModelGpsReceiver.__GPS_TOTAL_SV_LIMIT + 1):
+        for prn in xrange(1, ModelGnssReceiver.__GPS_TOTAL_SV_LIMIT + 1):
             self.satellites.append(ModelSatellite(
                 prn, azimuth=random.random() * 360, snr=30 + random.random() * 10))
 
@@ -620,7 +620,7 @@ class ModelGpsReceiver(object):
 
     @num_sats.setter
     def num_sats(self, value):
-        assert value <= ModelGpsReceiver.__GPS_TOTAL_SV_LIMIT
+        assert value <= ModelGnssReceiver.__GPS_TOTAL_SV_LIMIT
         # Randomly make the requested number visible, make the rest invisible
         # (negative elevation)
         random.shuffle(self.satellites)
@@ -652,8 +652,8 @@ class ModelGpsReceiver(object):
 
     @property
     def solution(self):
-        if self.fix == constants.GPS_INVALID_FIX:
-            return constants.GPS_INVALID_SOLUTION
+        if self.fix == constants.INVALID_FIX:
+            return constants.INVALID_SOLUTION
         return self.__solution
 
     @solution.setter
@@ -662,7 +662,7 @@ class ModelGpsReceiver(object):
         self.__solution = value
 
     def move(self, duration=1.0):
-        ''' 'Move' the GPS instance for the specified duration in seconds based on current heading and velocity.
+        ''' 'Move' the GNSS instance for the specified duration in seconds based on current heading and velocity.
         '''
         self.__recalculate()
         if self.lat is not None and self.lon is not None and self.heading is not None and self.kph is not None and self.kph > sys.float_info.epsilon:
@@ -674,13 +674,13 @@ class ModelGpsReceiver(object):
             self.__recalculate()
 
     def distance(self, other_lat, other_lon):
-        ''' Returns the current distance (in km) between the GPS instance and an arbitrary lat/lon coordinate.
+        ''' Returns the current distance (in km) between the GNSS instance and an arbitrary lat/lon coordinate.
         '''
         out = Geodesic.WGS84.Inverse(self.lat, self.lon, other_lat, other_lon)
         return out['s12'] / 1000.0
 
     def get_output(self):
-        ''' Returns a list of NMEA sentences (not new line terminated) that the GPS instance was configured to output.
+        ''' Returns a list of NMEA sentences (not new line terminated) that the GNSS instance was configured to output.
         '''
         self.__recalculate()
         outputs = []
@@ -689,9 +689,13 @@ class ModelGpsReceiver(object):
         return outputs
 
     def supported_output(self):
-        ''' Returns a tuple of supported NMEA sentences that the GPS model class is capable of producing.
+        ''' Returns a tuple of supported NMEA sentences that the GNSS model class is capable of producing.
         '''
         return self.__gen_nmea.keys()
+
+
+class ModelGpsReceiver(ModelGnssReceiver):
+    pass
 
 
 class GpsSim(object):

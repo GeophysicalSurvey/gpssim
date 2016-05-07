@@ -34,7 +34,7 @@ class TestGPSSim(unittest.TestCase):
         """
         Tests a fix for this issue https://bitbucket.org/wjiang/gpssim/issue/1/unhandled-exception-while-serving-an
         """
-        self.sim.gps.fix = constants.GPS_INVALID_FIX
+        self.sim.gps.fix = constants.INVALID_FIX
         self.sim._GpsSim__step()
         try:
             self.sim._GpsSim__step()
@@ -69,87 +69,87 @@ class TestModelGpsReceiver(unittest.TestCase):
 
     def test_lat_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.lat, LAT)
-        self.gps.fix = constants.GPS_INVALID_FIX
+        self.gps.fix = constants.INVALID_FIX
         self.assertEqual(self.gps.lat, LAT)
-        self.gps.fix = constants.GPS_SPS_FIX
+        self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.lat, LAT)
 
     def test_lon_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.lon, LON)
-        self.gps.fix = constants.GPS_INVALID_FIX
+        self.gps.fix = constants.INVALID_FIX
         self.assertEqual(self.gps.lon, LON)
-        self.gps.fix = constants.GPS_SPS_FIX
+        self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.lon, LON)
 
     def test_altitude_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.altitude, ALTITUDE)
-        self.gps.fix = constants.GPS_INVALID_FIX
+        self.gps.fix = constants.INVALID_FIX
         self.assertEqual(self.gps.altitude, ALTITUDE)
-        self.gps.fix = constants.GPS_SPS_FIX
+        self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.altitude, ALTITUDE)
 
     def test_geoid_sep_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.geoid_sep, GEOID_SEP)
-        self.gps.fix = constants.GPS_INVALID_FIX
+        self.gps.fix = constants.INVALID_FIX
         self.assertEqual(self.gps.geoid_sep, GEOID_SEP)
-        self.gps.fix = constants.GPS_SPS_FIX
+        self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.geoid_sep, GEOID_SEP)
 
     def test_hdop_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.hdop, HDOP)
-        self.gps.fix = constants.GPS_INVALID_FIX
+        self.gps.fix = constants.INVALID_FIX
         self.assertEqual(self.gps.hdop, HDOP)
-        self.gps.fix = constants.GPS_SPS_FIX
+        self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.hdop, HDOP)
 
     def test_vdop_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.vdop, VDOP)
-        self.gps.fix = constants.GPS_INVALID_FIX
+        self.gps.fix = constants.INVALID_FIX
         self.assertEqual(self.gps.vdop, VDOP)
-        self.gps.fix = constants.GPS_SPS_FIX
+        self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.vdop, VDOP)
 
     def test_pdop_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.pdop, PDOP)
-        self.gps.fix = constants.GPS_INVALID_FIX
+        self.gps.fix = constants.INVALID_FIX
         self.assertEqual(self.gps.pdop, PDOP)
-        self.gps.fix = constants.GPS_SPS_FIX
+        self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.pdop, PDOP)
 
     def test_kph_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.kph, KPH)
-        self.gps.fix = constants.GPS_INVALID_FIX
+        self.gps.fix = constants.INVALID_FIX
         self.assertEqual(self.gps.kph, KPH)
-        self.gps.fix = constants.GPS_SPS_FIX
+        self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.kph, KPH)
 
     def test_heading_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.heading, HEADING)
-        self.gps.fix = constants.GPS_INVALID_FIX
+        self.gps.fix = constants.INVALID_FIX
         self.assertEqual(self.gps.heading, HEADING)
-        self.gps.fix = constants.GPS_SPS_FIX
+        self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.heading, HEADING)
 
     def test_mag_heading_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.mag_heading, MAG_HEADING)
-        self.gps.fix = constants.GPS_INVALID_FIX
+        self.gps.fix = constants.INVALID_FIX
         self.assertEqual(self.gps.mag_heading, MAG_HEADING)
-        self.gps.fix = constants.GPS_SPS_FIX
+        self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.mag_heading, MAG_HEADING)
 
     def test_mag_var_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.mag_var, MAG_VAR)
-        self.gps.fix = constants.GPS_INVALID_FIX
+        self.gps.fix = constants.INVALID_FIX
         self.assertEqual(self.gps.mag_var, MAG_VAR)
-        self.gps.fix = constants.GPS_SPS_FIX
+        self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.mag_var, MAG_VAR)
 
     def test_solution_invalid_fix_results_in_invalid_solution(self):
-        self.assertEqual(self.gps.solution, constants.GPS_AUTONOMOUS_SOLUTION)
-        self.gps.fix = constants.GPS_INVALID_FIX
-        self.assertEqual(self.gps.solution, constants.GPS_INVALID_SOLUTION)
-        self.gps.fix = constants.GPS_SPS_FIX
-        self.assertEqual(self.gps.solution, constants.GPS_AUTONOMOUS_SOLUTION)
+        self.assertEqual(self.gps.solution, constants.AUTONOMOUS_SOLUTION)
+        self.gps.fix = constants.INVALID_FIX
+        self.assertEqual(self.gps.solution, constants.INVALID_SOLUTION)
+        self.gps.fix = constants.SPS_FIX
+        self.assertEqual(self.gps.solution, constants.AUTONOMOUS_SOLUTION)
 
     def test_vdop_is_same_value_when_altitude_is_None(self):
         self.assertEqual(self.gps.vdop, VDOP)
@@ -186,9 +186,9 @@ class TestModelGpsReceiver(unittest.TestCase):
                                  '$GPVTG,0.0,T,,M,0.0,N,0.0,K,N*02',
                                  '$GPZDA,092053.555,27,11,2014,,*5C']
         self.assertEqual(self.gps.get_output(), expected_valid_data)
-        self.gps.fix = constants.GPS_INVALID_FIX
+        self.gps.fix = constants.INVALID_FIX
         self.assertEqual(self.gps.get_output(), expected_invalid_data)
-        self.gps.fix = constants.GPS_SPS_FIX
+        self.gps.fix = constants.SPS_FIX
         self.assertEqual(self.gps.get_output(), expected_valid_data)
 
 

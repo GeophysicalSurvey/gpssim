@@ -150,13 +150,13 @@ controls[vars.keys()[-1]] = Tkinter.Entry(frame, textvar=vars[vars.keys()[-1]])
 
 vars['fix'] = Tkinter.StringVar()
 labels[vars.keys()[-1]] = Tkinter.Label(frame, text='Fix type:')
-vars[vars.keys()[-1]].set('GPS_SPS_FIX')
+vars[vars.keys()[-1]].set('SPS_FIX')
 controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame,
                                                vars[vars.keys()[-1]], *tuple(gpssim.fix_types.keys()))
 
 vars['solution'] = Tkinter.StringVar()
 labels[vars.keys()[-1]] = Tkinter.Label(frame, text='FAA solution mode:')
-vars[vars.keys()[-1]].set('GPS_AUTONOMOUS_SOLUTION')
+vars[vars.keys()[-1]].set('AUTONOMOUS_SOLUTION')
 controls[vars.keys()[-1]] = Tkinter.OptionMenu(frame,
                                                vars[vars.keys()[-1]], *tuple(gpssim.solution_modes.keys()))
 
