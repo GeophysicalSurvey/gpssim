@@ -68,16 +68,21 @@ solution_modes['GPS_ESTIMATED_SOLUTION'] = 'E'
 solution_modes[constants.GPS_INVALID_SOLUTION] = 'N'
 solution_modes['GPS_SIMULATOR_SOLUTION'] = 'S'
 
+
 class TimeZone(datetime.tzinfo):
     ''' Generic time zone class that implements the Python tzinfo interface
     Provides non-DST aware offsets from UTC in seconds (e.g. from time.timezone)
     '''
+
     def __init__(self, utcdeltasec=time.timezone):
         self.utcdeltasec = utcdeltasec
+
     def utcoffset(self, date_time):
         return datetime.timedelta(seconds=self.utcdeltasec) + self.dst(date_time)
+
     def dst(self, date_time):
         return datetime.timedelta(0)
+
     def tzname(self, date_time):
         hh = int(self.utcdeltasec / 3600)
         mm = int(self.utcdeltasec / 60 - hh * 60)
@@ -86,14 +91,17 @@ class TimeZone(datetime.tzinfo):
 
 tz_local = TimeZone(time.timezone)
 
+
 class ModelSatellite(object):
     ''' Model class for a GPS satellite
     '''
+
     def __init__(self, prn, elevation=0, azimuth=0, snr=40):
         self.prn = prn
         self.elevation = elevation
         self.azimuth = azimuth
         self.snr = snr
+
 
 class ModelGpsReceiver(object):
     ''' Model class for a GPS receiver
@@ -101,9 +109,9 @@ class ModelGpsReceiver(object):
     The model has the capability to project forward 2-D coordinates based on
     a speed and heading over a given time.
     '''
-    __GPS_TOTAL_SV_LIMIT = 32 # Maximum possible GPS constellation size
-    __GPGSA_SV_LIMIT = 12 # Maximum number of satellites per GPGSA message
-    __GPGSV_SV_LIMIT = 4 # Maximum number of satellites per GPGSV message
+    __GPS_TOTAL_SV_LIMIT = 32  # Maximum possible GPS constellation size
+    __GPGSA_SV_LIMIT = 12  # Maximum number of satellites per GPGSA message
+    __GPGSV_SV_LIMIT = 4  # Maximum number of satellites per GPGSV message
 
     # Constants for GPRMC and GPGLL validity
     __GPS_VALID_FIX = 'A'
@@ -145,7 +153,8 @@ class ModelGpsReceiver(object):
                 # If above horizon, treat as visible
                 self.__visible_prns.append(satellite.prn)
 
-        # Optional NMEA 2.3 solution 'mode' has priority if present when determining validity
+        # Optional NMEA 2.3 solution 'mode' has priority if present when
+        # determining validity
         if self.solution == constants.GPS_INVALID_SOLUTION:
             self.fix = constants.GPS_INVALID_FIX
 
@@ -219,12 +228,14 @@ class ModelGpsReceiver(object):
         self.__speed_spec = '%%.%df' % self.speed_dp
 
         if self.time_dp > 0:
-            self.__time_spec = ('%%0%d' % (self.time_dp + 3)) + ('.%df' % self.time_dp)
+            self.__time_spec = ('%%0%d' % (self.time_dp + 3)
+                                ) + ('.%df' % self.time_dp)
         else:
             self.__time_spec = '%02d'
 
         if self.horizontal_dp > 0:
-            self.__horizontal_spec = ('%%0%d' % (self.horizontal_dp + 3)) + ('.%df' % self.horizontal_dp)
+            self.__horizontal_spec = ('%%0%d' % (
+                self.horizontal_dp + 3)) + ('.%df' % self.horizontal_dp)
         else:
             self.__horizontal_spec = '%02d'
 
@@ -241,12 +252,14 @@ class ModelGpsReceiver(object):
         '''
         data = ''
         if self.lat is not None:
-            data += ('%02d' % self.__lat_degrees) + (self.__horizontal_spec % self.__lat_minutes) + ',' + self.__lat_sign + ','
+            data += ('%02d' % self.__lat_degrees) + (self.__horizontal_spec %
+                                                     self.__lat_minutes) + ',' + self.__lat_sign + ','
         else:
             data += ',,'
 
         if self.lon is not None:
-            data += ('%03d' % self.__lon_degrees) + (self.__horizontal_spec % self.__lon_minutes) + ',' + self.__lon_sign
+            data += ('%03d' % self.__lon_degrees) + (self.__horizontal_spec %
+                                                     self.__lon_minutes) + ',' + self.__lon_sign
         else:
             data += ','
         return data
@@ -313,11 +326,13 @@ class ModelGpsReceiver(object):
 
         if self.date_time is not None:
             ts = self.date_time.utctimetuple()
-            data += ('%02d' % ts.tm_mday) + ('%02d' % ts.tm_mon) + ('%02d' % (ts.tm_year % 100))
+            data += ('%02d' % ts.tm_mday) + ('%02d' %
+                                             ts.tm_mon) + ('%02d' % (ts.tm_year % 100))
         data += ','
 
         if self.mag_var is not None:
-            data += (self.__angle_spec % self.__mag_value) + ',' + self.__mag_sign
+            data += (self.__angle_spec % self.__mag_value) + \
+                ',' + self.__mag_sign
         else:
             data += ','
 
@@ -361,7 +376,8 @@ class ModelGpsReceiver(object):
             return []
 
         # Work out how many GPGSV sentences are required to show all satellites
-        messages = [''] * ((self.num_sats + ModelGpsReceiver.__GPGSV_SV_LIMIT - 1) / ModelGpsReceiver.__GPGSV_SV_LIMIT)
+        messages = [''] * ((self.num_sats + ModelGpsReceiver.__GPGSV_SV_LIMIT -
+                            1) / ModelGpsReceiver.__GPGSV_SV_LIMIT)
         prn_i = 0
 
         # Iterate through each block of satellites
@@ -383,7 +399,8 @@ class ModelGpsReceiver(object):
                 else:
                     data += ',,,'
 
-                # Final satellite in block does not have any fields after it so don't add a ','
+                # Final satellite in block does not have any fields after it so
+                # don't add a ','
                 if j != ModelGpsReceiver.__GPGSV_SV_LIMIT - 1:
                     data += ','
 
@@ -432,7 +449,6 @@ class ModelGpsReceiver(object):
 
         return [self.__format_sentence('GPGLL,' + data)]
 
-
     def __gpzda(self):
         ''' Generate an NMEA GPZDA sentence.
         '''
@@ -444,7 +460,8 @@ class ModelGpsReceiver(object):
         data += self.__nmea_time() + ','
 
         ts = self.date_time.utctimetuple()
-        data += ('%02d' % ts.tm_mday) + ',' + ('%02d' % ts.tm_mon) + ',' +  ('%04d' % (ts.tm_year % 10000)) + ','
+        data += ('%02d' % ts.tm_mday) + ',' + ('%02d' % ts.tm_mon) + \
+            ',' + ('%04d' % (ts.tm_year % 10000)) + ','
 
         offset = self.date_time.utcoffset()
         if offset is not None:
@@ -501,7 +518,8 @@ class ModelGpsReceiver(object):
         # Create all dummy satellites with random conditions
         self.satellites = []
         for prn in xrange(1, ModelGpsReceiver.__GPS_TOTAL_SV_LIMIT + 1):
-            self.satellites.append(ModelSatellite(prn, azimuth=random.random() * 360, snr=30 + random.random() * 10))
+            self.satellites.append(ModelSatellite(
+                prn, azimuth=random.random() * 360, snr=30 + random.random() * 10))
 
         # Smart setter will configure satellites as appropriate
         self.num_sats = num_sats
@@ -603,10 +621,11 @@ class ModelGpsReceiver(object):
     @num_sats.setter
     def num_sats(self, value):
         assert value <= ModelGpsReceiver.__GPS_TOTAL_SV_LIMIT
-        # Randomly make the requested number visible, make the rest invisible (negative elevation)
+        # Randomly make the requested number visible, make the rest invisible
+        # (negative elevation)
         random.shuffle(self.satellites)
         for i in xrange(value):
-            self.satellites[i].elevation=random.random() * 90
+            self.satellites[i].elevation = random.random() * 90
         for i in xrange(value, len(self.satellites)):
             self.satellites[i].elevation = -90
         self.satellites.sort(key=operator.attrgetter('prn', ))
@@ -676,11 +695,13 @@ class ModelGpsReceiver(object):
         '''
         return self.__gen_nmea.keys()
 
+
 class GpsSim(object):
     ''' GPS simulator class based on a ModelGpsReceiver
     Provides simulated NMEA output based on a ModelGpsReceiver instance over serial and/or stdout.
     Supports satellite model perturbation and random walk heading adjustment.
     '''
+
     def __init__(self, gps=None, static=False, heading_variation=45):
         ''' Initialise the GPS simulator instance with initial configuration.
         '''
@@ -707,14 +728,16 @@ class GpsSim(object):
         if self.gps.date_time is not None:
             self.gps.date_time += datetime.timedelta(seconds=duration)
 
-            perturbation = math.sin(self.gps.date_time.second * math.pi / 30) / 2
+            perturbation = math.sin(
+                self.gps.date_time.second * math.pi / 30) / 2
             for satellite in self.gps.satellites:
                 satellite.snr += perturbation
                 satellite.elevation += perturbation
                 satellite.azimuth += perturbation
 
         if self.heading_variation and self.gps.heading is not None:
-            self.gps.heading += (random.random() - 0.5) * self.heading_variation
+            self.gps.heading += (random.random() - 0.5) * \
+                self.heading_variation
 
         self.gps.move(duration)
 
@@ -739,7 +762,7 @@ class GpsSim(object):
                         self.comport.write(sentence + '\r\n')
 
             if self.__run.is_set():
-                time.sleep(0.1) # Minimum sleep to avoid long lock ups
+                time.sleep(0.1)  # Minimum sleep to avoid long lock ups
             while self.__run.is_set() and time.time() - start < self.interval:
                 time.sleep(0.1)
             if self.__run.is_set():
@@ -815,12 +838,13 @@ if __name__ == '__main__':
 
     # How to output specific sentence types from the model
     model = ModelGpsReceiver()
-    model.output=('GPGGA', 'GPRMC')
+    model.output = ('GPGGA', 'GPRMC')
     sentences = model.get_output()
 
     # Modify settings under lock protection
     with sim.lock:
-        sim.gps.output=('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV', 'GPRMC', 'GPVTG', 'GPZDA') # can re-order or drop some
+        sim.gps.output = ('GPGGA', 'GPGLL', 'GPGSA', 'GPGSV',
+                          'GPRMC', 'GPVTG', 'GPZDA')  # can re-order or drop some
         sim.gps.num_sats = 14
         sim.gps.lat = 1
         sim.gps.lon = 3
@@ -830,19 +854,22 @@ if __name__ == '__main__':
         sim.gps.kph = 60.0
         sim.gps.heading = 90.0
         sim.gps.mag_heading = 90.1
-        sim.gps.date_time = datetime.datetime.now(TimeZone(time.timezone)) # PC current time, local time zone
+        sim.gps.date_time = datetime.datetime.now(
+            TimeZone(time.timezone))  # PC current time, local time zone
         sim.gps.hdop = 3.1
         sim.gps.vdop = 5.0
         sim.gps.pdop = (sim.gps.hdop ** 2 + sim.gps.vdop ** 2) ** 0.5
 
         # Precision decimal points for various measurements
-        sim.gps.horizontal_dp=4
-        sim.gps.vertical_dp=1
-        sim.gps.speed_dp=1
-        sim.gps.time_dp=2
-        sim.gps.angle_dp=1
+        sim.gps.horizontal_dp = 4
+        sim.gps.vertical_dp = 1
+        sim.gps.speed_dp = 1
+        sim.gps.time_dp = 2
+        sim.gps.angle_dp = 1
 
-        sim.heading_variation = None # Keep straight course for simulator - don't randomly change the heading
+        # Keep straight course for simulator - don't randomly change the
+        # heading
+        sim.heading_variation = None
 
     # How to synchronously generate simulated data to stdout
     sim.generate(1)
@@ -850,7 +877,7 @@ if __name__ == '__main__':
     port = None
     if len(sys.argv) > 1:
         if sys.argv[1] == '--help' or sys.argv[1] == '-h':
-            print "Usage: %s [serial port]"%sys.argv[0]
+            print "Usage: %s [serial port]" % sys.argv[0]
             sys.exit(0)
         port = sys.argv[1]
     sim.serve(port)

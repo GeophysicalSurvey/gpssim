@@ -1,5 +1,6 @@
 import subprocess
 
+
 def vcs_version():
     return subprocess.check_output(['hg', 'log', '-r', 'limit(.::, 1)', '--template', '{latesttag}.{latesttagdistance}'])
 

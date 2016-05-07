@@ -21,6 +21,7 @@ HEADING = 0.0
 MAG_HEADING = None
 MAG_VAR = 0.0
 
+
 class TestGPSSim(unittest.TestCase):
 
     def setUp(self):
@@ -41,10 +42,13 @@ class TestGPSSim(unittest.TestCase):
             self.fail("A type error was raised" % traceback.print_exc())
             raise err
 
+
 class TestModelGpsReceiver(unittest.TestCase):
 
     def setUp(self):
-        random.seed(0)  #Necessary because some of the initial data eg PRNs is generated at random on initialisation
+        # Necessary because some of the initial data eg PRNs is generated at
+        # random on initialisation
+        random.seed(0)
         dt = datetime.datetime(2014, 11, 27, 9, 20, 53, 555000)
         print dt.isoformat()
         self.gps = ModelGpsReceiver(lat=LAT,
@@ -186,7 +190,6 @@ class TestModelGpsReceiver(unittest.TestCase):
         self.assertEqual(self.gps.get_output(), expected_invalid_data)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.get_output(), expected_valid_data)
-
 
 
 if __name__ == "__main__":
