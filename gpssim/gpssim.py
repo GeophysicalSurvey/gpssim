@@ -726,7 +726,7 @@ class GpsSim(object):
     Supports satellite model perturbation and random walk heading adjustment.
     '''
 
-    def __init__(self, gps=None, static=False, heading_variation=45):
+    def __init__(self, gps=None, glonass=None, static=False, heading_variation=45):
         ''' Initialise the GPS simulator instance with initial configuration.
         '''
         self.__worker = threading.Thread(target=self.__action)
@@ -734,6 +734,10 @@ class GpsSim(object):
         if gps is None:
             gps = ModelGpsReceiver()
         self.gps = gps
+        self.glonass = glonass
+        self.gnss = [gps]
+        if glonass is not None:
+            self.gnss.append(glonass)
         self.heading_variation = heading_variation
         self.static = static
         self.interval = 1.0
@@ -749,21 +753,21 @@ class GpsSim(object):
         if self.static:
             return
 
-        if self.gps.date_time is not None:
-            self.gps.date_time += datetime.timedelta(seconds=duration)
+        for gnss in self.gnss:
+            if gnss.date_time is not None:
+                gnss.date_time += datetime.timedelta(seconds=duration)
 
-            perturbation = math.sin(
-                self.gps.date_time.second * math.pi / 30) / 2
-            for satellite in self.gps.satellites:
-                satellite.snr += perturbation
-                satellite.elevation += perturbation
-                satellite.azimuth += perturbation
+                perturbation = math.sin(gnss.date_time.second * math.pi / 30) / 2
+                for satellite in gnss.satellites:
+                    satellite.snr += perturbation
+                    satellite.elevation += perturbation
+                    satellite.azimuth += perturbation
 
-        if self.heading_variation and self.gps.heading is not None:
-            self.gps.heading += (random.random() - 0.5) * \
-                self.heading_variation
+            if self.heading_variation and gnss.heading is not None:
+                gnss.heading += (random.random() - 0.5) * \
+                    self.heading_variation
 
-        self.gps.move(duration)
+            gnss.move(duration)
 
     def __action(self):
         ''' Worker thread action for the GPS simulator - outputs data to the specified serial port at 1PPS.
@@ -776,7 +780,9 @@ class GpsSim(object):
             start = time.time()
             if self.__run.is_set():
                 with self.lock:
-                    output = self.gps.get_output()
+                    output = []
+                    for gnss in self.gnss:
+                        output += gnss.get_output()
             if self.__run.is_set():
                 for sentence in output:
                     if not self.__run.is_set():
@@ -841,7 +847,9 @@ class GpsSim(object):
         now = start
         while (now - start).total_seconds() < duration:
             with self.lock:
-                output = self.gps.get_output()
+                output = []
+                for gnss in self.gnss:
+                    output += gnss.get_output()
                 for sentence in output:
                     print sentence
                 self.__step(self.step)
@@ -853,8 +861,9 @@ class GpsSim(object):
         with self.lock:
             self.comport.port = comport
             self.comport.open()
-            for sentence in self.gps.get_output():
-                self.comport.write(sentence + '\r\n')
+            for gnss in self.gnss:
+                for sentence in gnss.get_output():
+                    self.comport.write(sentence + '\r\n')
             self.comport.close()
 
 if __name__ == '__main__':
