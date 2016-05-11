@@ -390,7 +390,7 @@ class ModelGnssReceiver(object):
             # Iterate through each satellite in the block
             for j in xrange(self.__GSV_SV_LIMIT):
                 if prn_i < self.num_sats:
-                    satellite = self.satellites[self.__visible_prns[prn_i] - 1]
+                    satellite = next((sat for sat in self.satellites if sat.prn == self.__visible_prns[prn_i]))
                     data += ('%d' % satellite.prn) + ','
                     data += ('%d' % int(satellite.elevation)) + ','
                     data += ('%d' % int(satellite.azimuth)) + ','
@@ -473,15 +473,42 @@ class ModelGnssReceiver(object):
 
         return [self.__format_sentence(self._prefix + 'ZDA,' + data)]
 
-    def __init__(self, output=('GGA', 'GLL', 'GSA', 'GSV', 'RMC', 'VTG', 'ZDA'), solution=constants.AUTONOMOUS_SOLUTION, fix=constants.SPS_FIX, manual_2d=False, horizontal_dp=3, vertical_dp=1, speed_dp=1, time_dp=3, angle_dp=1, date_time=0, lat=0.0, lon=0.0, altitude=0.0, geoid_sep=0.0, kph=0.0, heading=0.0, mag_heading=None, mag_var=0.0, num_sats=12, hdop=1.0, vdop=1.0, pdop=1.0, last_dgps=None, dgps_station=None, has_rtc=False):
+    def __init__(self,
+                 min_sv_number,
+                 max_sv_number,
+                 total_sv_limit,
+                 output=('GGA', 'GLL', 'GSA', 'GSV', 'RMC', 'VTG', 'ZDA'),
+                 solution=constants.AUTONOMOUS_SOLUTION,
+                 fix=constants.SPS_FIX, manual_2d=False,
+                 horizontal_dp=3,
+                 vertical_dp=1,
+                 speed_dp=1,
+                 time_dp=3,
+                 angle_dp=1,
+                 date_time=0,
+                 lat=0.0,
+                 lon=0.0,
+                 altitude=0.0,
+                 geoid_sep=0.0,
+                 kph=0.0,
+                 heading=0.0,
+                 mag_heading=None,
+                 mag_var=0.0,
+                 num_sats=12,
+                 hdop=1.0,
+                 vdop=1.0,
+                 pdop=1.0,
+                 last_dgps=None,
+                 dgps_station=None,
+                 has_rtc=False):
         ''' Initialise the GNSS instance with initial configuration.
         '''
         # Populate the sentence generation table
 
         self._prefix = 'GN'
-        self._min_sv_number = 1  # Minimum satellite prn
-        self._max_sv_number = 32  # Maximum satellite prn
-        self._total_sv_limit = 32  # Maximum possible satellite constellation size
+        self.__min_sv_number = min_sv_number  # Minimum satellite prn
+        self.__max_sv_number = max_sv_number  # Maximum satellite prn
+        self.__total_sv_limit = total_sv_limit  # Maximum possible satellite constellation size
 
         self.__gen_nmea = {}
         self.__gen_nmea['GGA'] = self.__gga
@@ -523,7 +550,7 @@ class ModelGnssReceiver(object):
 
         # Create all dummy satellites with random conditions
         self.satellites = []
-        for prn in xrange(self._min_sv_number, self._max_sv_number + 1):
+        for prn in xrange(self.__min_sv_number, self.__max_sv_number + 1):
             self.satellites.append(ModelSatellite(
                 prn, azimuth=random.random() * 360, snr=30 + random.random() * 10))
 
@@ -626,7 +653,7 @@ class ModelGnssReceiver(object):
 
     @num_sats.setter
     def num_sats(self, value):
-        assert value <= self._total_sv_limit
+        assert value <= self.__total_sv_limit
         # Randomly make the requested number visible, make the rest invisible
         # (negative elevation)
         random.shuffle(self.satellites)
@@ -703,20 +730,20 @@ class ModelGnssReceiver(object):
 class ModelGpsReceiver(ModelGnssReceiver):
 
     def __init__(self, *args, **kwargs):
-        super(ModelGpsReceiver, self).__init__(*args, **kwargs)
-        self._min_sv_number = 1  # Minimum satellite prn
-        self._max_sv_number = 32  # Maximum satellite prn
-        self._total_sv_limit = 32  # Maximum possible satellite constellation size
+        super(ModelGpsReceiver, self).__init__(min_sv_number=1,
+                                               max_sv_number=32,
+                                               total_sv_limit=32,
+                                               *args, **kwargs)
         self._prefix = 'GP'
 
 
 class ModelGlonassReceiver(ModelGnssReceiver):
 
     def __init__(self, *args, **kwargs):
-        super(ModelGlonassReceiver, self).__init__(*args, **kwargs)
-        self._min_sv_number = 65  # Minimum satellite prn
-        self._max_sv_number = 96  # Maximum satellite prn
-        self._total_sv_limit = 24  # Maximum possible satellite constellation size
+        super(ModelGlonassReceiver, self).__init__(min_sv_number=65,
+                                                   max_sv_number=96,
+                                                   total_sv_limit=24,
+                                                   *args, **kwargs)
         self._prefix = 'GL'
 
 
