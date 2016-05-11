@@ -7,3 +7,4 @@ dist/
 warngpssim.txt
 versionnumberstring
 versioninfo
+*.egg-info/
