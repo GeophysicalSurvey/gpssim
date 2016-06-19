@@ -20,15 +20,15 @@ KPH = 0.0
 HEADING = 0.0
 MAG_HEADING = None
 MAG_VAR = 0.0
-        
+
 class TestGPSSim(unittest.TestCase):
-    
+
     def setUp(self):
         self.sim = GpsSim()
-    
+
     def tearDown(self):
         pass
-    
+
     def test_invalid_fix__step(self):
         """
         Tests a fix for this issue https://bitbucket.org/wjiang/gpssim/issue/1/unhandled-exception-while-serving-an
@@ -42,7 +42,7 @@ class TestGPSSim(unittest.TestCase):
             raise err
 
 class TestModelGpsReceiver(unittest.TestCase):
-    
+
     def setUp(self):
         random.seed(0)  #Necessary because some of the initial data eg PRNs is generated at random on initialisation
         dt = datetime.datetime(2014, 11, 27, 9, 20, 53, 555000)
@@ -59,108 +59,108 @@ class TestModelGpsReceiver(unittest.TestCase):
                                     mag_heading=MAG_HEADING,
                                     mag_var=MAG_VAR,
                                     date_time=dt)
-        
+
     def tearDown(self):
         pass
-    
+
     def test_lat_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.lat, LAT)
         self.gps.fix = constants.GPS_INVALID_FIX
         self.assertEqual(self.gps.lat, LAT)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.lat, LAT)
-        
+
     def test_lon_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.lon, LON)
         self.gps.fix = constants.GPS_INVALID_FIX
         self.assertEqual(self.gps.lon, LON)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.lon, LON)
-        
+
     def test_altitude_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.altitude, ALTITUDE)
         self.gps.fix = constants.GPS_INVALID_FIX
         self.assertEqual(self.gps.altitude, ALTITUDE)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.altitude, ALTITUDE)
-        
+
     def test_geoid_sep_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.geoid_sep, GEOID_SEP)
         self.gps.fix = constants.GPS_INVALID_FIX
         self.assertEqual(self.gps.geoid_sep, GEOID_SEP)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.geoid_sep, GEOID_SEP)
-        
+
     def test_hdop_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.hdop, HDOP)
         self.gps.fix = constants.GPS_INVALID_FIX
         self.assertEqual(self.gps.hdop, HDOP)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.hdop, HDOP)
-        
+
     def test_vdop_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.vdop, VDOP)
         self.gps.fix = constants.GPS_INVALID_FIX
         self.assertEqual(self.gps.vdop, VDOP)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.vdop, VDOP)
-        
+
     def test_pdop_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.pdop, PDOP)
         self.gps.fix = constants.GPS_INVALID_FIX
         self.assertEqual(self.gps.pdop, PDOP)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.pdop, PDOP)
-        
+
     def test_kph_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.kph, KPH)
         self.gps.fix = constants.GPS_INVALID_FIX
         self.assertEqual(self.gps.kph, KPH)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.kph, KPH)
-        
+
     def test_heading_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.heading, HEADING)
         self.gps.fix = constants.GPS_INVALID_FIX
         self.assertEqual(self.gps.heading, HEADING)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.heading, HEADING)
-        
+
     def test_mag_heading_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.mag_heading, MAG_HEADING)
         self.gps.fix = constants.GPS_INVALID_FIX
         self.assertEqual(self.gps.mag_heading, MAG_HEADING)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.mag_heading, MAG_HEADING)
-        
+
     def test_mag_var_property_returns_same_value_if_fix_is_gps_invalid_fix(self):
         self.assertEqual(self.gps.mag_var, MAG_VAR)
         self.gps.fix = constants.GPS_INVALID_FIX
         self.assertEqual(self.gps.mag_var, MAG_VAR)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.mag_var, MAG_VAR)
-        
+
     def test_solution_invalid_fix_results_in_invalid_solution(self):
         self.assertEqual(self.gps.solution, constants.GPS_AUTONOMOUS_SOLUTION)
         self.gps.fix = constants.GPS_INVALID_FIX
         self.assertEqual(self.gps.solution, constants.GPS_INVALID_SOLUTION)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.solution, constants.GPS_AUTONOMOUS_SOLUTION)
-        
+
     def test_vdop_is_same_value_when_altitude_is_None(self):
         self.assertEqual(self.gps.vdop, VDOP)
         self.gps.altitude = None
         self.assertEqual(self.gps.vdop, VDOP)
         self.gps.altitude = ALTITUDE
         self.assertEqual(self.gps.vdop, VDOP)
-        
+
     def test_pdop_is_same_value_when_altitude_is_None(self):
         self.assertEqual(self.gps.pdop, PDOP)
         self.gps.altitude = None
         self.assertEqual(self.gps.pdop, PDOP)
         self.gps.altitude = ALTITUDE
         self.assertEqual(self.gps.pdop, PDOP)
-        
+
     def test_get_output_returns_info_when_fix_is_valid(self):
         expected_valid_data = ['$GPGGA,092053.555,0000.000,N,00000.000,E,1,12,1.0,0.0,M,0.0,M,,*66',
                                '$GPGLL,0000.000,N,00000.000,E,092053.555,A,A*51',
@@ -171,7 +171,7 @@ class TestModelGpsReceiver(unittest.TestCase):
                                '$GPRMC,092053.555,A,0000.000,N,00000.000,E,0.0,0.0,271114,0.0,E,A*0D',
                                '$GPVTG,0.0,T,,M,0.0,N,0.0,K,A*0D',
                                '$GPZDA,092053.555,27,11,2014,,*5C']
-        
+
         expected_invalid_data = ['$GPGGA,092053.555,0000.000,N,00000.000,E,0,12,1.0,0.0,M,0.0,M,,*67',
                                  '$GPGLL,0000.000,N,00000.000,E,092053.555,V,N*49',
                                  '$GPGSA,A,1,1,3,4,7,9,10,13,20,21,22,25,29,1.0,1.0,1.0*07',
@@ -186,7 +186,7 @@ class TestModelGpsReceiver(unittest.TestCase):
         self.assertEqual(self.gps.get_output(), expected_invalid_data)
         self.gps.fix = constants.GPS_SPS_FIX
         self.assertEqual(self.gps.get_output(), expected_valid_data)
-        
+
 
 
 if __name__ == "__main__":
