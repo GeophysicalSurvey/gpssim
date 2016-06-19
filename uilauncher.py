@@ -37,14 +37,14 @@ except:
 
 # Scan available serial ports
 ports = ['']
-for i in range(256):
+for i in xrange(256):
 	try:
-		port = serial.Serial(i)
+		port = serial.Serial(str(i))
 		ports.append(port.portstr)
 		port.close()
 	except serial.SerialException:
 		pass
-	
+
 # pyserial doesn't seem to find USB ports at the moment using the above method in Linux, this is a workaround.
 usb_ports = glob.glob('/dev/ttyUSB*')
 for usb_port in usb_ports:
@@ -57,11 +57,11 @@ for usb_port in usb_ports:
 		pass
 
 # Return the ports in sorted order to avoid confusion when they are filenames.
-try_digit = lambda text: int(text) if text.isdigit() else text 
+try_digit = lambda text: int(text) if text.isdigit() else text
 ports.sort(key=lambda key: [try_digit(chunk) for chunk in re.split('([0-9]+)', key)])
 
 root = Tkinter.Tk()
-	
+
 try:
 	with open(os.path.join(sys._MEIPASS, 'versionnumberstring')) as file:
 		versionnumberstring = ' (' + file.read() + ')'
@@ -257,7 +257,7 @@ current_row = 0
 for item in controls.keys():
 	labels[item].config(font=customFont)
 	labels[item].grid(row=current_row, sticky=Tkinter.E, column=0)
-	
+
 	if isinstance(controls[item], Tkinter.Entry):
 		controls[item].config(width=textwidth, font=customFont)
 		controls[item].grid(row=current_row, sticky=Tkinter.E+Tkinter.W, column=1)
@@ -388,18 +388,18 @@ def start():
 
 	# Change configuration under lock in case its already running from last time
 	with sim.lock:
-		
+
 		# Go through each field and parse them for the simulator
 		# If anything invalid pops up revert to a safe value (e.g. None)
 		try:
 			formats = [x.strip() for x in vars['output'].get().split(',')]
 			sim.gps.output = formats
 		except:
-			raise        
+			raise
 			vars['output'].set(defaultformatstring)
 			formats = [x.strip() for x in vars['output'].get().split(',')]
 			sim.gps.output = formats
-            
+
 		sim.static = vars['static'].get()
 		try:
 			sim.interval = float(vars['interval'].get())
@@ -422,7 +422,7 @@ def start():
 		sim.gps.solution = vars['solution'].get()
 		sim.gps.manual_2d = vars['manual_2d'].get()
 		sim.gps.num_sats = vars['num_sats'].get()
-		
+
 		try:
 			sim.gps.dgps_station = int(vars['dgps_station'].get())
 		except:
@@ -443,15 +443,15 @@ def start():
 				tz = dt[-6:].split(':')
 				dt = dt[:-6]
 				utcoffset = int(tz[0]) * 3600 + int(tz[1]) * 60
-				
+
 				sim.gps.date_time = datetime.datetime.strptime(dt, '%Y-%m-%dT%H:%M:%S.%f')
 				sim.gps.date_time = sim.gps.date_time.replace(tzinfo=gpssim.TimeZone(utcoffset))
 			except:
 				sim.gps.date_time = datetime.datetime.now(gpssim.TimeZone(time.timezone))
 				vars['date_time'].set(sim.gps.date_time.isoformat())
-		
+
 		sim.gps.time_dp = vars['time_dp'].get()
-		
+
 		try:
 			sim.gps._lat = float(vars['lat'].get())
 		except:
@@ -477,9 +477,9 @@ def start():
 			vars['geoid_sep'].set('')
 
 		sim.gps.horizontal_dp = vars['horizontal_dp'].get()
-		
+
 		sim.gps.vertical_dp = vars['vertical_dp'].get()
-		
+
 		try:
 			sim.gps.kph = float(vars['kph'].get())
 		except:
@@ -503,11 +503,11 @@ def start():
 		except:
 			sim.gps.mag_var = None
 			vars['mag_var'].set('')
-		
+
 		sim.gps.speed_dp = vars['speed_dp'].get()
-				
+
 		sim.gps.angle_dp = vars['angle_dp'].get()
-		
+
 		try:
 			sim.gps.hdop = float(vars['hdop'].get())
 		except:
@@ -548,11 +548,11 @@ def stop():
 
 	if sim.is_running():
 		sim.kill()
-	
+
 	startstopbutton.config(command=start, text='Start')
-	
+
 	update()
-	
+
 	for item in controls.keys():
 		controls[item].config(state=Tkinter.NORMAL)
 
