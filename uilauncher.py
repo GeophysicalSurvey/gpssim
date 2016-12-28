@@ -298,7 +298,6 @@ sim = gpssim.GpsSim()
 
 
 def update():
-    global sim
     with sim.lock:
         formatstring = ''
         for format in sim.gps.output:
@@ -566,8 +565,6 @@ def start():
     if port == '':
         port = None
 
-    global startstopbutton
-    global controls
     startstopbutton.config(command=stop, text='Stop')
     for item in controls.keys():
         controls[item].config(state=Tkinter.DISABLED)
@@ -576,10 +573,6 @@ def start():
 
 
 def stop():
-    global sim
-    global startstopbutton
-    global controls
-
     if sim.is_running():
         sim.kill()
 
@@ -590,10 +583,10 @@ def stop():
     for item in controls.keys():
         controls[item].config(state=Tkinter.NORMAL)
 
+startstopbutton = Tkinter.Button(root, text='Start', command=start)
 
 def main():
     frame.pack(padx=5, pady=5, side=Tkinter.TOP)
-    startstopbutton = Tkinter.Button(root, text='Start', command=start)
     startstopbutton.pack(padx=5, pady=5, side=Tkinter.RIGHT)
 
     # Start the UI!
