@@ -35,18 +35,18 @@ import math
 import random
 import operator
 import collections
-import constants
+from . import constants
 
 try:
     import serial
 except:
-    print 'Missing package dependency for pySerial'
+    print('Missing package dependency for pySerial')
     raise
 
 try:
     from geographiclib.geodesic import Geodesic
 except:
-    print 'Missing package dependency for GeographicLib'
+    print('Missing package dependency for GeographicLib')
     raise
 
 fix_types = collections.OrderedDict()
@@ -349,7 +349,7 @@ class ModelGnssReceiver(object):
         data += self.__mode + ','
 
         if self.num_sats >= self.__GSA_SV_LIMIT:
-            for i in xrange(self.__GSA_SV_LIMIT):
+            for i in range(self.__GSA_SV_LIMIT):
                 data += ('%d' % self.__visible_prns[i]) + ','
         else:
             for prn in self.__visible_prns:
@@ -381,14 +381,14 @@ class ModelGnssReceiver(object):
         prn_i = 0
 
         # Iterate through each block of satellites
-        for i in xrange(len(messages)):
+        for i in range(len(messages)):
             data = ''
             data += ('%d' % len(messages)) + ','
             data += ('%d' % (i + 1)) + ','
             data += ('%d' % self.num_sats) + ','
 
             # Iterate through each satellite in the block
-            for j in xrange(self.__GSV_SV_LIMIT):
+            for j in range(self.__GSV_SV_LIMIT):
                 if prn_i < self.num_sats:
                     satellite = next((sat for sat in self.satellites if sat.prn == self.__visible_prns[prn_i]))
                     data += ('%d' % satellite.prn) + ','
@@ -550,7 +550,7 @@ class ModelGnssReceiver(object):
 
         # Create all dummy satellites with random conditions
         self.satellites = []
-        for prn in xrange(self.__min_sv_number, self.__max_sv_number + 1):
+        for prn in range(self.__min_sv_number, self.__max_sv_number + 1):
             self.satellites.append(ModelSatellite(
                 prn, azimuth=random.random() * 360, snr=30 + random.random() * 10))
 
@@ -657,9 +657,9 @@ class ModelGnssReceiver(object):
         # Randomly make the requested number visible, make the rest invisible
         # (negative elevation)
         random.shuffle(self.satellites)
-        for i in xrange(value):
+        for i in range(value):
             self.satellites[i].elevation = random.random() * 90
-        for i in xrange(value, len(self.satellites)):
+        for i in range(value, len(self.satellites)):
             self.satellites[i].elevation = -90
         self.satellites.sort(key=operator.attrgetter('prn', ))
         self.__recalculate()
@@ -814,7 +814,7 @@ class GpsSim(object):
                 for sentence in output:
                     if not self.__run.is_set():
                         break
-                    print sentence
+                    #print(sentence)
                     if self.comport.port is not None:
                         self.comport.write(sentence + '\r\n')
 
@@ -877,8 +877,8 @@ class GpsSim(object):
                 output = []
                 for gnss in self.gnss:
                     output += gnss.get_output()
-                for sentence in output:
-                    print sentence
+                #for sentence in output:
+                    #print(sentence)
                 self.__step(self.step)
                 now = self.gps.date_time
 
@@ -937,7 +937,7 @@ if __name__ == '__main__':
     port = None
     if len(sys.argv) > 1:
         if sys.argv[1] == '--help' or sys.argv[1] == '-h':
-            print "Usage: %s [serial port]" % sys.argv[0]
+            print("Usage: %s [serial port]" % sys.argv[0])
             sys.exit(0)
         port = sys.argv[1]
     sim.serve(port)

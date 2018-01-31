@@ -1,10 +1,8 @@
 from setuptools import setup
 
-exec open('gpssim/version.py').read()
-
 setup(
     name='gpssim',
-    version=__version__,
+    version=0.0,
     description='A Python GPS simulation library',
     author='Wei Li Jiang',
     author_email='wjiang87@gmail.com',

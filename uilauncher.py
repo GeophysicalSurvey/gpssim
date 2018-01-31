@@ -32,7 +32,7 @@ import time
 try:
     import serial
 except:
-    print 'Missing package dependency for pySerial'
+    print('Missing package dependency for pySerial')
     raise
 
 # Scan available serial ports
